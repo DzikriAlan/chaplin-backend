@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment — semua varian .env kecuali .env.example
+.env
+.env.*
+!.env.example
+
+# Credentials & secrets
+*.pem
+*.key
+*.p12
+*.pfx
+*.cert
+*.crt
+*.cer
+secrets/
+credentials/
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+.qodo/
+*.swp
+*.swo
+
+# Test coverage
+coverage/
+
+# NestJS
+.nest/

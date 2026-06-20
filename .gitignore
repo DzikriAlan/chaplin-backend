@@ -35,7 +35,6 @@ Thumbs.db
 
 # IDE
 .idea/
-.vscode/
 .qodo/
 *.swp
 *.swo
@@ -45,3 +44,6 @@ coverage/
 
 # NestJS
 .nest/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

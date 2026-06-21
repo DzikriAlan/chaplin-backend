@@ -4,7 +4,6 @@ import { RedisService } from './redis.service'
 const DEFAULT_TTL = {
   AGENTS: 300,          // 5 min
   KNOWLEDGE_BASE: 600,  // 10 min
-  QUESTIONS: 1800,      // 30 min
   DASHBOARD: 60,        // 1 min
   DOCUMENTS: 60,        // 1 min
   UPLOAD: 300,          // 5 min

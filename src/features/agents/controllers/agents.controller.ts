@@ -3,8 +3,8 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger'
 import { AgentsService } from '../services/agents.service'
 import type { CreateAgentsDto, UpdateAgentsDto } from '../dto/agents.dto'
 
-@ApiTags('agents')
-@Controller('agents')
+@ApiTags('agent')
+@Controller('agent')
 export class AgentsController {
   private readonly logger = new Logger(AgentsController.name)
 

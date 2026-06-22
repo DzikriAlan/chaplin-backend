@@ -88,15 +88,30 @@ model GeneratedQuestion {
 }
 
 model KnowledgeBase {
-  id        String                       @id @default(cuid())
-  question  String
-  answer    String                       @db.Text
-  tags      String[]
-  isActive  Boolean                      @default(true)
-  embedding Unsupported("vector(1024)")?
-  createdAt DateTime                     @default(now())
-  updatedAt DateTime                     @updatedAt
+  id            String                       @id @default(cuid())
+  type          String                       // 'public' | 'faq' | 'googleDrive' | 'myDrive'
+  userId        String?                      // null untuk public items
+  question      String
+  answer        String                       @db.Text
+  tags          String[]                     @default([])
+  category      String?                      // untuk FAQ
+  folderId      String?                      // untuk MyDrive
+  fileName      String?                      // untuk MyDrive
+  mimeType      String?                      // untuk MyDrive
+  fileUrl       String?                      // untuk MyDrive
+  size          Int?                         // untuk MyDrive
+  folderName    String?                      // untuk GoogleDrive & MyDrive folders
+  description   String?                      // untuk MyDrive folder
+  accessToken   String?                      @db.Text  // untuk GoogleDrive
+  refreshToken  String?                      @db.Text  // untuk GoogleDrive
+  isActive      Boolean                      @default(true)
+  embedding     Unsupported("vector(1024)")?
+  createdAt     DateTime                     @default(now())
+  updatedAt     DateTime                     @updatedAt
 
+  @@index([type, userId, isActive])
+  @@index([userId, type])
+  @@index([type, isActive])
   @@map("knowledge_base")
 }
 
@@ -269,4 +284,19 @@ model UploadFile {
 
   @@index([folderId])
   @@map("upload_files")
+}
+
+// All knowledge base types are now unified in KnowledgeBase model above
+
+// Usage Saldo Model (alias for userBalance)
+model UsageSaldo {
+  id            String     @id @default(cuid())
+  userId        String     @unique
+  balance       Int        @default(19000)
+  fileSizeBytes BigInt     @default(0)
+  plan          String     @default("starter")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@map("user_balances_new")
 }

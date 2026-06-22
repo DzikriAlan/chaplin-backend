@@ -1,9 +1,9 @@
-export class KnowledgeBaseEntity {
+export class KnowledgeBaseFaqEntity {
   id: string
+  userId: string
   question: string
   answer: string
-  tags: string[]
-  isActive: boolean
+  category?: string
   createdAt: Date
   updatedAt: Date
 }

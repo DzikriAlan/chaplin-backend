@@ -2,20 +2,15 @@ import { Body, Controller, Delete, Get, HttpException, InternalServerErrorExcept
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard'
 import { CurrentUser, type CurrentUserPayload } from '../../../shared/decorators/current-user.decorator'
-import { KnowledgeBaseService } from '../services/knowledgeBase.service'
-import { FaqManagerService } from '../../faq-manager/services/faqManager.service'
-import type { CreateKnowledgeBaseDto, UpdateKnowledgeBaseDto } from '../dto/knowledgeBase.dto'
-import type { CreateFaqManagerDto } from '../../faq-manager/dto/faqManager.dto'
+import { KnowledgeBaseFaqService } from '../services/knowledgeBaseFaq.service'
+import type { CreateKnowledgeBaseDto, UpdateKnowledgeBaseDto, CreateFaqManagerDto } from '../dto/knowledgeBaseFaq.dto'
 
 @ApiTags('knowledge-base/faq')
 @Controller('knowledge-base/faq')
 export class KnowledgeBaseFaqController {
   private readonly logger = new Logger(KnowledgeBaseFaqController.name)
 
-  constructor(
-    private readonly knowledgeBaseService: KnowledgeBaseService,
-    private readonly faqManagerService: FaqManagerService,
-  ) {}
+  constructor(private readonly faqService: KnowledgeBaseFaqService) {}
 
   // ─── Knowledge Base Items (Public) ───────────────────────────────────────────
 
@@ -23,7 +18,7 @@ export class KnowledgeBaseFaqController {
   @ApiOperation({ summary: 'Get knowledge base list (public)' })
   async fetchKnowledgeBaseList() {
     try {
-      return await this.knowledgeBaseService.getKnowledgeBaseList()
+      return await this.faqService.getKnowledgeBaseList()
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in fetchKnowledgeBaseList', error)
@@ -32,10 +27,12 @@ export class KnowledgeBaseFaqController {
   }
 
   @Post('items')
-  @ApiOperation({ summary: 'Create knowledge base item (public)' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create knowledge base item' })
   async saveKnowledgeBase(@Body() dto: CreateKnowledgeBaseDto) {
     try {
-      return await this.knowledgeBaseService.storeKnowledgeBase(dto)
+      return await this.faqService.storeKnowledgeBase(dto)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in saveKnowledgeBase', error)
@@ -44,10 +41,12 @@ export class KnowledgeBaseFaqController {
   }
 
   @Patch('items')
-  @ApiOperation({ summary: 'Update knowledge base item (public)' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update knowledge base item' })
   async modifyKnowledgeBase(@Query('id') id: string, @Body() dto: UpdateKnowledgeBaseDto) {
     try {
-      return await this.knowledgeBaseService.changeKnowledgeBase(id, dto)
+      return await this.faqService.changeKnowledgeBase(id, dto)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in modifyKnowledgeBase', error)
@@ -56,10 +55,12 @@ export class KnowledgeBaseFaqController {
   }
 
   @Delete('items')
-  @ApiOperation({ summary: 'Delete knowledge base item (public)' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete knowledge base item' })
   async destroyKnowledgeBase(@Query('id') id: string) {
     try {
-      return await this.knowledgeBaseService.removeKnowledgeBase(id)
+      return await this.faqService.removeKnowledgeBase(id)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in destroyKnowledgeBase', error)
@@ -75,7 +76,7 @@ export class KnowledgeBaseFaqController {
   @ApiOperation({ summary: 'Get FAQ list for current user' })
   async fetchFaqList(@CurrentUser() user: CurrentUserPayload) {
     try {
-      return await this.faqManagerService.getFaqManagerList(user.id)
+      return await this.faqService.getFaqManagerList(user.id)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in fetchFaqList', error)
@@ -89,7 +90,7 @@ export class KnowledgeBaseFaqController {
   @ApiOperation({ summary: 'Create FAQ item for current user' })
   async saveFaq(@Body() dto: CreateFaqManagerDto, @CurrentUser() user: CurrentUserPayload) {
     try {
-      return await this.faqManagerService.storeFaqManager(user.id, dto)
+      return await this.faqService.storeFaqManager(user.id, dto)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in saveFaq', error)
@@ -103,7 +104,7 @@ export class KnowledgeBaseFaqController {
   @ApiOperation({ summary: 'Delete FAQ item for current user' })
   async destroyFaq(@Query('id') id: string, @CurrentUser() user: CurrentUserPayload) {
     try {
-      return await this.faqManagerService.removeFaqManager(id, user.id)
+      return await this.faqService.removeFaqManager(id, user.id)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in destroyFaq', error)

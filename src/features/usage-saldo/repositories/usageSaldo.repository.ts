@@ -18,17 +18,17 @@ export class UsageSaldoRepository {
 
   async findBalance(userId: string) {
     try {
-      return await this.prisma.userBalance.findUnique({ where: { userId } })
+      return await this.prisma.usageSaldo.findUnique({ where: { userId } })
     } catch (error) {
-      throw handlePrismaError(error, 'balance')
+      throw handlePrismaError(error, 'usageSaldo')
     }
   }
 
   async createBalance(userId: string) {
     try {
-      return await this.prisma.userBalance.create({ data: { userId } })
+      return await this.prisma.usageSaldo.create({ data: { userId } })
     } catch (error) {
-      throw handlePrismaError(error, 'balance')
+      throw handlePrismaError(error, 'usageSaldo')
     }
   }
 
@@ -36,14 +36,14 @@ export class UsageSaldoRepository {
     try {
       const balanceAfter = balanceBefore + amount
       const [updated] = await this.prisma.$transaction([
-        this.prisma.userBalance.update({ where: { userId }, data: { balance: balanceAfter } }),
+        this.prisma.usageSaldo.update({ where: { userId }, data: { balance: balanceAfter } }),
         this.prisma.usageLog.create({
           data: { userId, activityType: 'topup', deduction: -amount, balanceBefore, balanceAfter },
         }),
       ])
       return updated
     } catch (error) {
-      throw handlePrismaError(error, 'balance')
+      throw handlePrismaError(error, 'usageSaldo')
     }
   }
 

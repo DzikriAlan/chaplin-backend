@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { IsString, IsOptional, IsArray } from 'class-validator'
 
+// ─── Public Knowledge Base DTOs ──────────────────────────────────────────
+
 export class CreateKnowledgeBaseDto {
   @ApiProperty()
   @IsString()
@@ -41,6 +43,33 @@ export class KnowledgeBaseResponseDto {
   @ApiProperty() answer: string
   @ApiProperty({ type: [String] }) tags: string[]
   @ApiProperty() isActive: boolean
+  @ApiProperty() createdAt: Date
+  @ApiProperty() updatedAt: Date
+}
+
+// ─── FAQ Manager DTOs ────────────────────────────────────────────────────
+
+export class CreateFaqManagerDto {
+  @ApiProperty()
+  @IsString()
+  question: string
+
+  @ApiProperty()
+  @IsString()
+  answer: string
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  category?: string
+}
+
+export class FaqManagerResponseDto {
+  @ApiProperty() id: string
+  @ApiProperty() userId: string
+  @ApiProperty() question: string
+  @ApiProperty() answer: string
+  @ApiProperty({ required: false }) category?: string
   @ApiProperty() createdAt: Date
   @ApiProperty() updatedAt: Date
 }

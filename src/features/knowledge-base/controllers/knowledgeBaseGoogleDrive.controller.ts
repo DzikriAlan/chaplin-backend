@@ -1,20 +1,17 @@
-import { Body, Controller, Delete, Get, HttpException, InternalServerErrorException, Logger, Patch, Post, Query, Res } from '@nestjs/common'
-import { ApiTags, ApiOperation } from '@nestjs/swagger'
+import { Body, Controller, Delete, Get, HttpException, InternalServerErrorException, Logger, Patch, Post, Query, Res, UseGuards } from '@nestjs/common'
+import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger'
 import type { Response } from 'express'
-import { DriveService } from '../../drive/services/drive.service'
-import { DocumentsService } from '../../documents/services/documents.service'
-import type { SelectDriveFolderDto } from '../../drive/dto/drive.dto'
-import type { UpdateDocumentsDto, DeleteDocumentsDto, SyncDocumentsDto } from '../../documents/dto/documents.dto'
+import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard'
+import { CurrentUser, type CurrentUserPayload } from '../../../shared/decorators/current-user.decorator'
+import { KnowledgeBaseGoogleDriveService } from '../services/knowledgeBaseGoogleDrive.service'
+import type { SelectDriveFolderDto, UpdateDocumentsDto, DeleteDocumentsDto, SyncDocumentsDto } from '../dto/knowledgeBaseGoogleDrive.dto'
 
 @ApiTags('knowledge-base/google-drive')
 @Controller('knowledge-base/google-drive')
 export class KnowledgeBaseGoogleDriveController {
   private readonly logger = new Logger(KnowledgeBaseGoogleDriveController.name)
 
-  constructor(
-    private readonly driveService: DriveService,
-    private readonly documentsService: DocumentsService,
-  ) {}
+  constructor(private readonly googleDriveService: KnowledgeBaseGoogleDriveService) {}
 
   // ─── OAuth ───────────────────────────────────────────────────────────────────
 
@@ -22,7 +19,7 @@ export class KnowledgeBaseGoogleDriveController {
   @ApiOperation({ summary: 'Initiate Google Drive OAuth' })
   async fetchDriveAuth(@Res() res: Response) {
     try {
-      const url = this.driveService.getDriveAuthUrl()
+      const url = await this.googleDriveService.getDriveAuthUrl()
       res.redirect(url)
     } catch (error) {
       if (error instanceof HttpException) throw error
@@ -39,7 +36,7 @@ export class KnowledgeBaseGoogleDriveController {
     @Res() res: Response,
   ) {
     try {
-      const redirectUrl = await this.driveService.processDriveCallback(code, folderId)
+      const redirectUrl = await this.googleDriveService.processDriveCallback(code, folderId)
       res.redirect(redirectUrl)
     } catch (error) {
       if (error instanceof HttpException) throw error
@@ -51,10 +48,12 @@ export class KnowledgeBaseGoogleDriveController {
   // ─── Config ──────────────────────────────────────────────────────────────────
 
   @Get('config')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get Drive config' })
-  async fetchDriveConfig() {
+  async fetchDriveConfig(@CurrentUser() user: CurrentUserPayload) {
     try {
-      return await this.driveService.getDriveConfig()
+      return await this.googleDriveService.getDriveConfig(user.id)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in fetchDriveConfig', error)
@@ -63,10 +62,12 @@ export class KnowledgeBaseGoogleDriveController {
   }
 
   @Delete('config')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete Drive config and all documents' })
-  async destroyDriveConfig() {
+  async destroyDriveConfig(@CurrentUser() user: CurrentUserPayload) {
     try {
-      return await this.driveService.removeDriveConfig()
+      return await this.googleDriveService.removeDriveConfig(user.id)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in destroyDriveConfig', error)
@@ -77,10 +78,12 @@ export class KnowledgeBaseGoogleDriveController {
   // ─── Folders ─────────────────────────────────────────────────────────────────
 
   @Get('folders')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'List Google Drive folders' })
   async fetchDriveFolders() {
     try {
-      return await this.driveService.getDriveFolders()
+      return await this.googleDriveService.getDriveFolders()
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in fetchDriveFolders', error)
@@ -89,10 +92,12 @@ export class KnowledgeBaseGoogleDriveController {
   }
 
   @Post('folders')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Select Google Drive folder and scan files' })
-  async saveDriveFolders(@Body() dto: SelectDriveFolderDto) {
+  async saveDriveFolders(@CurrentUser() user: CurrentUserPayload, @Body() dto: SelectDriveFolderDto) {
     try {
-      return await this.driveService.storeDriveFolders(dto)
+      return await this.googleDriveService.storeDriveFolders(user.id, dto)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in saveDriveFolders', error)
@@ -103,10 +108,12 @@ export class KnowledgeBaseGoogleDriveController {
   // ─── Documents ───────────────────────────────────────────────────────────────
 
   @Get('documents')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get documents list' })
-  async fetchDocumentsList() {
+  async fetchDocumentsList(@CurrentUser() user: CurrentUserPayload) {
     try {
-      return await this.documentsService.getDocumentsList()
+      return await this.googleDriveService.getDocumentsList(user.id)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in fetchDocumentsList', error)
@@ -115,10 +122,12 @@ export class KnowledgeBaseGoogleDriveController {
   }
 
   @Patch('documents')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update document status' })
-  async modifyDocuments(@Body() dto: UpdateDocumentsDto) {
+  async modifyDocuments(@CurrentUser() user: CurrentUserPayload, @Body() dto: UpdateDocumentsDto) {
     try {
-      return await this.documentsService.changeDocuments(dto)
+      return await this.googleDriveService.changeDocuments(user.id, dto)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in modifyDocuments', error)
@@ -127,10 +136,12 @@ export class KnowledgeBaseGoogleDriveController {
   }
 
   @Delete('documents')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete documents' })
-  async destroyDocuments(@Query('id') id: string, @Body() dto: DeleteDocumentsDto) {
+  async destroyDocuments(@CurrentUser() user: CurrentUserPayload, @Query('id') id: string, @Body() dto: DeleteDocumentsDto) {
     try {
-      return await this.documentsService.removeDocuments(id ?? null, dto)
+      return await this.googleDriveService.removeDocuments(user.id, id ?? null, dto)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in destroyDocuments', error)
@@ -139,10 +150,12 @@ export class KnowledgeBaseGoogleDriveController {
   }
 
   @Post('sync')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Sync Google Drive documents' })
-  async saveDocumentsSync(@Body() dto: SyncDocumentsDto) {
+  async saveDocumentsSync(@CurrentUser() user: CurrentUserPayload, @Body() dto: SyncDocumentsDto) {
     try {
-      return await this.documentsService.storeDocumentsSync(dto)
+      return await this.googleDriveService.storeDocumentsSync(user.id, dto)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in saveDocumentsSync', error)

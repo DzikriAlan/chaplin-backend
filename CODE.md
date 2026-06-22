@@ -67,6 +67,47 @@ src/shared/
     └── paginated-result.ts            # PaginatedResult<T> shape for pagination meta
 ```
 
+# Penamaan Function
+
+Nama function tidak mengikuti struktur folder, tetapi mengikuti seluruh resource endpoint agar tetap jelas dan mudah dicari.
+
+## Aturan
+
+Dari URL endpoint, buang:
+
+* Base URL / domain
+* Prefix `api`
+* Versioning dengan pola `v{angka}` (`v1`, `v2`, dst)
+* Segmen dinamis (`{id}`, `{type}`, dst)
+
+Gabungkan seluruh segmen yang tersisa menjadi `PascalCase`, lalu tambahkan prefix sesuai jenis function.
+
+## Prefix Function
+
+| Jenis             | Prefix     | Contoh                           |
+| ----------------- | ---------- | -------------------------------- |
+| GET (single/list) | `get`      | `getUsersProfile()`              |
+| POST              | `create`   | `createUsersProfile()`           |
+| PUT/PATCH         | `update`   | `updateUsersProfile()`           |
+| DELETE            | `delete`   | `deleteUsersProfile()`           |
+| Upload file       | `upload`   | `uploadAiSearchRegisterFile()`   |
+| Download file     | `download` | `downloadAiSearchRegisterFile()` |
+| SSE / Stream      | `stream`   | `streamNotifications()`          |
+
+## Contoh
+
+| URL                                           | Function Name                  |
+| --------------------------------------------- | ------------------------------ |
+| `/api/v1/users/profile`                       | `getUsersProfile()`            |
+| `/api/v1/users/profile` (POST)                | `createUsersProfile()`         |
+| `/api/v1/users/profile/{id}` (PATCH)          | `updateUsersProfile()`         |
+| `/api/v1/users/profile/{id}` (DELETE)         | `deleteUsersProfile()`         |
+| `/api/v1/ai-search/register/file/{type}/{id}` | `uploadAiSearchRegisterFile()` |
+| `/api/v1/notifications/stream`                | `streamNotifications()`        |
+
+> Nama function selalu menggunakan seluruh resource path (`resourceName`) dalam format `PascalCase`, dengan awalan yang merepresentasikan aksi HTTP atau tujuan function.
+
+
 ### `prisma.service.ts` — Singleton Wajib
 
 ```typescript

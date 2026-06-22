@@ -1,22 +1,26 @@
-import { Body, Controller, Delete, Get, HttpException, InternalServerErrorException, Logger, Post, Query } from '@nestjs/common'
-import { ApiTags, ApiOperation } from '@nestjs/swagger'
-import { UploadService } from '../../upload/services/upload.service'
-import type { CreateUploadSignedUrlDto, CreateUploadFolderDto } from '../../upload/dto/upload.dto'
+import { Body, Controller, Delete, Get, HttpException, InternalServerErrorException, Logger, Post, Query, UseGuards } from '@nestjs/common'
+import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger'
+import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard'
+import { CurrentUser, type CurrentUserPayload } from '../../../shared/decorators/current-user.decorator'
+import { KnowledgeBaseMyDriveService } from '../services/knowledgeBaseMyDrive.service'
+import type { CreateUploadSignedUrlDto, CreateUploadFolderDto } from '../dto/knowledgeBaseMyDrive.dto'
 
 @ApiTags('knowledge-base/my-drive')
 @Controller('knowledge-base/my-drive')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class KnowledgeBaseMyDriveController {
   private readonly logger = new Logger(KnowledgeBaseMyDriveController.name)
 
-  constructor(private readonly uploadService: UploadService) {}
+  constructor(private readonly myDriveService: KnowledgeBaseMyDriveService) {}
 
   // ─── Signed URL ──────────────────────────────────────────────────────────────
 
   @Post('signed-url')
   @ApiOperation({ summary: 'Create signed upload URL' })
-  async saveUploadSignedUrl(@Body() dto: CreateUploadSignedUrlDto) {
+  async saveUploadSignedUrl(@CurrentUser() user: CurrentUserPayload, @Body() dto: CreateUploadSignedUrlDto) {
     try {
-      return await this.uploadService.storeUploadSignedUrl(dto)
+      return await this.myDriveService.storeUploadSignedUrl(user.id, dto)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in saveUploadSignedUrl', error)
@@ -28,9 +32,9 @@ export class KnowledgeBaseMyDriveController {
 
   @Get('files')
   @ApiOperation({ summary: 'List uploaded files' })
-  async fetchUploadFiles(@Query('folderId') folderId: string) {
+  async fetchUploadFiles(@CurrentUser() user: CurrentUserPayload, @Query('folderId') folderId: string) {
     try {
-      return await this.uploadService.getUploadFilesList(folderId ?? null)
+      return await this.myDriveService.getUploadFilesList(user.id, folderId ?? null)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in fetchUploadFiles', error)
@@ -40,9 +44,9 @@ export class KnowledgeBaseMyDriveController {
 
   @Delete('files')
   @ApiOperation({ summary: 'Delete uploaded file' })
-  async destroyUploadFiles(@Query('id') id: string) {
+  async destroyUploadFiles(@CurrentUser() user: CurrentUserPayload, @Query('id') id: string) {
     try {
-      return await this.uploadService.removeUploadFile(id)
+      return await this.myDriveService.removeUploadFile(user.id, id)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in destroyUploadFiles', error)
@@ -54,9 +58,9 @@ export class KnowledgeBaseMyDriveController {
 
   @Get('folders')
   @ApiOperation({ summary: 'List upload folders' })
-  async fetchUploadFolders() {
+  async fetchUploadFolders(@CurrentUser() user: CurrentUserPayload) {
     try {
-      return await this.uploadService.getUploadFoldersList()
+      return await this.myDriveService.getUploadFoldersList(user.id)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in fetchUploadFolders', error)
@@ -66,9 +70,9 @@ export class KnowledgeBaseMyDriveController {
 
   @Post('folders')
   @ApiOperation({ summary: 'Create upload folder' })
-  async saveUploadFolders(@Body() dto: CreateUploadFolderDto) {
+  async saveUploadFolders(@CurrentUser() user: CurrentUserPayload, @Body() dto: CreateUploadFolderDto) {
     try {
-      return await this.uploadService.storeUploadFolder(dto)
+      return await this.myDriveService.storeUploadFolder(user.id, dto)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in saveUploadFolders', error)
@@ -78,9 +82,9 @@ export class KnowledgeBaseMyDriveController {
 
   @Delete('folders')
   @ApiOperation({ summary: 'Delete upload folder' })
-  async destroyUploadFolders(@Query('id') id: string) {
+  async destroyUploadFolders(@CurrentUser() user: CurrentUserPayload, @Query('id') id: string) {
     try {
-      return await this.uploadService.removeUploadFolder(id)
+      return await this.myDriveService.removeUploadFolder(user.id, id)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in destroyUploadFolders', error)

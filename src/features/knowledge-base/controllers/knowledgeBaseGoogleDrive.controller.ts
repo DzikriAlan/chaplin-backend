@@ -17,30 +17,30 @@ export class KnowledgeBaseGoogleDriveController {
 
   @Get('auth')
   @ApiOperation({ summary: 'Initiate Google Drive OAuth' })
-  async fetchDriveAuth(@Res() res: Response) {
+  async loadDriveAuth(@Res() res: Response) {
     try {
-      const url = await this.googleDriveService.getDriveAuthUrl()
+      const url = await this.googleDriveService.fetchDriveAuthUrl()
       res.redirect(url)
     } catch (error) {
       if (error instanceof HttpException) throw error
-      this.logger.error('Unexpected error in fetchDriveAuth', error)
+      this.logger.error('Unexpected error in loadDriveAuth', error)
       if (!res.headersSent) throw new InternalServerErrorException()
     }
   }
 
   @Get('callback')
   @ApiOperation({ summary: 'Handle Google Drive OAuth callback' })
-  async fetchDriveCallback(
+  async loadDriveCallback(
     @Query('code') code: string,
     @Query('folderId') folderId: string,
     @Res() res: Response,
   ) {
     try {
-      const redirectUrl = await this.googleDriveService.processDriveCallback(code, folderId)
+      const redirectUrl = await this.googleDriveService.storeDriveCallback(code, folderId)
       res.redirect(redirectUrl)
     } catch (error) {
       if (error instanceof HttpException) throw error
-      this.logger.error('Unexpected error in fetchDriveCallback', error)
+      this.logger.error('Unexpected error in loadDriveCallback', error)
       if (!res.headersSent) throw new InternalServerErrorException()
     }
   }
@@ -51,12 +51,12 @@ export class KnowledgeBaseGoogleDriveController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get Drive config' })
-  async fetchDriveConfig(@CurrentUser() user: CurrentUserPayload) {
+  async loadDriveConfig(@CurrentUser() user: CurrentUserPayload) {
     try {
-      return await this.googleDriveService.getDriveConfig(user.id)
+      return await this.googleDriveService.fetchDriveConfig(user.id)
     } catch (error) {
       if (error instanceof HttpException) throw error
-      this.logger.error('Unexpected error in fetchDriveConfig', error)
+      this.logger.error('Unexpected error in loadDriveConfig', error)
       throw new InternalServerErrorException()
     }
   }
@@ -81,12 +81,12 @@ export class KnowledgeBaseGoogleDriveController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List Google Drive folders' })
-  async fetchDriveFolders() {
+  async loadDriveFolders() {
     try {
-      return await this.googleDriveService.getDriveFolders()
+      return await this.googleDriveService.fetchDriveFolders()
     } catch (error) {
       if (error instanceof HttpException) throw error
-      this.logger.error('Unexpected error in fetchDriveFolders', error)
+      this.logger.error('Unexpected error in loadDriveFolders', error)
       throw new InternalServerErrorException()
     }
   }
@@ -111,12 +111,12 @@ export class KnowledgeBaseGoogleDriveController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get documents list' })
-  async fetchDocumentsList(@CurrentUser() user: CurrentUserPayload) {
+  async loadDocumentsList(@CurrentUser() user: CurrentUserPayload) {
     try {
-      return await this.googleDriveService.getDocumentsList(user.id)
+      return await this.googleDriveService.fetchDocumentsList(user.id)
     } catch (error) {
       if (error instanceof HttpException) throw error
-      this.logger.error('Unexpected error in fetchDocumentsList', error)
+      this.logger.error('Unexpected error in loadDocumentsList', error)
       throw new InternalServerErrorException()
     }
   }

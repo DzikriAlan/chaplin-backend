@@ -8,7 +8,7 @@ export class KnowledgeBaseGoogleDriveService {
 
   constructor(private readonly driveRepository: KnowledgeBaseGoogleDriveRepository) {}
 
-  async getDriveAuthUrl(): Promise<string> {
+  async fetchDriveAuthUrl(): Promise<string> {
     try {
       // TODO: Implement Google OAuth URL generation
       throw new BadRequestException('Google Drive OAuth not yet configured')
@@ -19,7 +19,7 @@ export class KnowledgeBaseGoogleDriveService {
     }
   }
 
-  async processDriveCallback(code: string, folderId: string): Promise<string> {
+  async storeDriveCallback(code: string, folderId: string): Promise<string> {
     try {
       // TODO: Implement OAuth callback processing
       throw new BadRequestException('Google Drive OAuth callback not yet implemented')
@@ -30,10 +30,10 @@ export class KnowledgeBaseGoogleDriveService {
     }
   }
 
-  async getDriveConfig(userId: string) {
+  async fetchDriveConfig(userId: string) {
     try {
       if (!userId) throw new BadRequestException('User ID is required')
-      return await this.driveRepository.findGoogleDriveConfig(userId)
+      return await this.driveRepository.getGoogleDriveConfig(userId)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to get Google Drive config', error)
@@ -41,7 +41,7 @@ export class KnowledgeBaseGoogleDriveService {
     }
   }
 
-  async getDriveFolders(): Promise<any[]> {
+  async fetchDriveFolders(): Promise<any[]> {
     try {
       // TODO: Implement folder listing from Google Drive API
       return []
@@ -56,12 +56,12 @@ export class KnowledgeBaseGoogleDriveService {
     try {
       if (!userId) throw new BadRequestException('User ID is required')
       if (!dto.folderId) throw new BadRequestException('Folder ID is required')
-      const existing = await this.driveRepository.findGoogleDriveConfig(userId)
+      const existing = await this.driveRepository.getGoogleDriveConfig(userId)
       if (existing) {
-        return await this.driveRepository.updateGoogleDriveConfig(userId, dto)
+        return await this.driveRepository.patchGoogleDriveConfig(userId, dto)
       }
       // TODO: Get actual access token and refresh token from OAuth
-      return await this.driveRepository.createGoogleDriveConfig(userId, dto, 'access-token', 'refresh-token')
+      return await this.driveRepository.postGoogleDriveConfig(userId, dto, 'access-token', 'refresh-token')
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to store Google Drive folders', error)
@@ -81,10 +81,10 @@ export class KnowledgeBaseGoogleDriveService {
     }
   }
 
-  async getDocumentsList(userId: string) {
+  async fetchDocumentsList(userId: string) {
     try {
       if (!userId) throw new BadRequestException('User ID is required')
-      return await this.driveRepository.findGoogleDriveDocumentsList(userId)
+      return await this.driveRepository.getGoogleDriveDocumentsList(userId)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to get Google Drive documents list', error)
@@ -95,7 +95,7 @@ export class KnowledgeBaseGoogleDriveService {
   async changeDocuments(userId: string, dto: UpdateDocumentsDto) {
     try {
       if (!dto.id) throw new BadRequestException('Document ID is required')
-      return await this.driveRepository.updateGoogleDriveDocument(dto.id, dto)
+      return await this.driveRepository.patchGoogleDriveDocument(dto.id, dto)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to update Google Drive document', error)

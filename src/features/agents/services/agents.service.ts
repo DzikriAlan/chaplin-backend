@@ -14,11 +14,11 @@ export class AgentsService {
     private readonly cacheService: CacheService,
   ) {}
 
-  async getAgentsList() {
+  async fetchAgentsList() {
     try {
       return await this.cacheService.getOrSet(
         AGENTS_LIST_KEY,
-        () => this.agentsRepository.findAgentsMany(),
+        () => this.agentsRepository.getAgentsMany(),
         this.cacheService.ttl.AGENTS,
       )
     } catch (error) {
@@ -34,7 +34,7 @@ export class AgentsService {
       if (dto.isDefault) {
         await this.agentsRepository.updateAgentsDefault()
       }
-      const result = await this.agentsRepository.createAgents(dto)
+      const result = await this.agentsRepository.postAgents(dto)
       await this.cacheService.invalidate(AGENTS_LIST_KEY)
       return result
     } catch (error) {
@@ -49,7 +49,7 @@ export class AgentsService {
       if (dto.isDefault) {
         await this.agentsRepository.updateAgentsDefault(id)
       }
-      const result = await this.agentsRepository.updateAgents(id, dto)
+      const result = await this.agentsRepository.patchAgents(id, dto)
       await this.cacheService.invalidate(AGENTS_LIST_KEY)
       return result
     } catch (error) {

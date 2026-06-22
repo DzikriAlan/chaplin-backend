@@ -14,9 +14,9 @@ export class KnowledgeBaseFaqService {
 
   // ─── Public Knowledge Base Methods ───────────────────────────────────────
 
-  async getKnowledgeBaseList() {
+  async fetchKnowledgeBaseList() {
     try {
-      return await this.faqRepository.findKnowledgeBaseMany()
+      return await this.faqRepository.getKnowledgeBaseMany()
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to get knowledge base list', error)
@@ -27,9 +27,9 @@ export class KnowledgeBaseFaqService {
   async storeKnowledgeBase(dto: CreateKnowledgeBaseDto) {
     try {
       if (!dto.question || !dto.answer) throw new BadRequestException('Missing question or answer')
-      const item = await this.faqRepository.createKnowledgeBase(dto)
+      const item = await this.faqRepository.postKnowledgeBase(dto)
       await this.queueService.enqueueKbEmbed(item.id, dto.question, dto.answer)
-      await this.faqRepository.deleteChatCache()
+      await this.faqRepository.deleteKnowledgeBaseChat()
       return item
     } catch (error) {
       if (error instanceof HttpException) throw error
@@ -40,11 +40,11 @@ export class KnowledgeBaseFaqService {
 
   async changeKnowledgeBase(id: string, dto: UpdateKnowledgeBaseDto) {
     try {
-      const item = await this.faqRepository.updateKnowledgeBase(id, dto)
+      const item = await this.faqRepository.patchKnowledgeBase(id, dto)
       if (dto.question !== undefined || dto.answer !== undefined) {
         await this.queueService.enqueueKbEmbed(id, item.question, item.answer)
       }
-      await this.faqRepository.deleteChatCache()
+      await this.faqRepository.deleteKnowledgeBaseChat()
       return item
     } catch (error) {
       if (error instanceof HttpException) throw error
@@ -55,8 +55,8 @@ export class KnowledgeBaseFaqService {
 
   async removeKnowledgeBase(id: string) {
     try {
-      await this.faqRepository.updateKnowledgeBaseActive(id, false)
-      await this.faqRepository.deleteChatCache()
+      await this.faqRepository.patchKnowledgeBaseActive(id, false)
+      await this.faqRepository.deleteKnowledgeBaseChat()
       return { success: true }
     } catch (error) {
       if (error instanceof HttpException) throw error
@@ -67,10 +67,10 @@ export class KnowledgeBaseFaqService {
 
   // ─── FAQ Manager Methods ─────────────────────────────────────────────────
 
-  async getFaqManagerList(userId: string) {
+  async fetchFaqManagerList(userId: string) {
     try {
       if (!userId) throw new BadRequestException('User ID is required')
-      return await this.faqRepository.findFaqManagerMany(userId)
+      return await this.faqRepository.getFaqManagerMany(userId)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to get FAQ list', error)
@@ -82,7 +82,7 @@ export class KnowledgeBaseFaqService {
     try {
       if (!userId) throw new BadRequestException('User ID is required')
       if (!dto.question || !dto.answer) throw new BadRequestException('Question and answer are required')
-      return await this.faqRepository.createFaqManager(userId, dto)
+      return await this.faqRepository.postFaqManager(userId, dto)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to create FAQ', error)
@@ -94,7 +94,7 @@ export class KnowledgeBaseFaqService {
     try {
       if (!id) throw new BadRequestException('FAQ ID is required')
       if (!userId) throw new BadRequestException('User ID is required')
-      const faq = await this.faqRepository.findFaqManagerById(id, userId)
+      const faq = await this.faqRepository.getFaqManagerById(id, userId)
       if (!faq) throw new BadRequestException('FAQ not found')
       await this.faqRepository.deleteFaqManager(id, userId)
       return { success: true }

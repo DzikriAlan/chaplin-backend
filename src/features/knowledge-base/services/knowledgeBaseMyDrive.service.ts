@@ -26,10 +26,10 @@ export class KnowledgeBaseMyDriveService {
     }
   }
 
-  async getUploadFilesList(userId: string, folderId: string | null) {
+  async fetchUploadFilesList(userId: string, folderId: string | null) {
     try {
       if (!userId) throw new BadRequestException('User ID is required')
-      return await this.uploadRepository.findMyDriveFilesList(userId, folderId)
+      return await this.uploadRepository.getMyDriveFilesList(userId, folderId)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to get My Drive files list', error)
@@ -49,10 +49,10 @@ export class KnowledgeBaseMyDriveService {
     }
   }
 
-  async getUploadFoldersList(userId: string) {
+  async fetchUploadFoldersList(userId: string) {
     try {
       if (!userId) throw new BadRequestException('User ID is required')
-      return await this.uploadRepository.findMyDriveFoldersList(userId)
+      return await this.uploadRepository.getMyDriveFoldersList(userId)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to get My Drive folders list', error)
@@ -64,7 +64,7 @@ export class KnowledgeBaseMyDriveService {
     try {
       if (!userId) throw new BadRequestException('User ID is required')
       if (!dto.folderName) throw new BadRequestException('Folder name is required')
-      return await this.uploadRepository.createMyDriveFolder(userId, dto)
+      return await this.uploadRepository.postMyDriveFolder(userId, dto)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to create My Drive folder', error)

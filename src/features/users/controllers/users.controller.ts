@@ -15,12 +15,12 @@ export class UsersController {
 
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
-  async fetchUsersMe(@CurrentUser() user: CurrentUserPayload) {
+  async loadUsersMe(@CurrentUser() user: CurrentUserPayload) {
     try {
       return await this.usersService.getUsersMe(user.id)
     } catch (error) {
       if (error instanceof HttpException) throw error
-      this.logger.error('Unexpected error in fetchUsersMe', error)
+      this.logger.error('Unexpected error in loadUsersMe', error)
       throw new InternalServerErrorException()
     }
   }

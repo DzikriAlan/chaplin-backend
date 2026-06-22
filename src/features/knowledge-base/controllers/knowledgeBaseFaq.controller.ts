@@ -16,12 +16,12 @@ export class KnowledgeBaseFaqController {
 
   @Get('items')
   @ApiOperation({ summary: 'Get knowledge base list (public)' })
-  async fetchKnowledgeBaseList() {
+  async loadKnowledgeBaseList() {
     try {
-      return await this.faqService.getKnowledgeBaseList()
+      return await this.faqService.fetchKnowledgeBaseList()
     } catch (error) {
       if (error instanceof HttpException) throw error
-      this.logger.error('Unexpected error in fetchKnowledgeBaseList', error)
+      this.logger.error('Unexpected error in loadKnowledgeBaseList', error)
       throw new InternalServerErrorException()
     }
   }
@@ -74,12 +74,12 @@ export class KnowledgeBaseFaqController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get FAQ list for current user' })
-  async fetchFaqList(@CurrentUser() user: CurrentUserPayload) {
+  async loadFaqList(@CurrentUser() user: CurrentUserPayload) {
     try {
-      return await this.faqService.getFaqManagerList(user.id)
+      return await this.faqService.fetchFaqManagerList(user.id)
     } catch (error) {
       if (error instanceof HttpException) throw error
-      this.logger.error('Unexpected error in fetchFaqList', error)
+      this.logger.error('Unexpected error in loadFaqList', error)
       throw new InternalServerErrorException()
     }
   }

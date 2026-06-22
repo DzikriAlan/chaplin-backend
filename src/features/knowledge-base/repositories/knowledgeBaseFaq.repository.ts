@@ -9,7 +9,7 @@ export class KnowledgeBaseFaqRepository {
 
   // ─── Public Knowledge Base Methods ───────────────────────────────────────
 
-  async findKnowledgeBaseMany() {
+  async getKnowledgeBaseMany() {
     try {
       return await this.prisma.knowledgeBase.findMany({
         where: { type: 'public', isActive: true },
@@ -20,7 +20,7 @@ export class KnowledgeBaseFaqRepository {
     }
   }
 
-  async createKnowledgeBase(dto: CreateKnowledgeBaseDto) {
+  async postKnowledgeBase(dto: CreateKnowledgeBaseDto) {
     try {
       return await this.prisma.knowledgeBase.create({
         data: {
@@ -35,7 +35,7 @@ export class KnowledgeBaseFaqRepository {
     }
   }
 
-  async updateKnowledgeBaseEmbedding(id: string, vectorStr: string) {
+  async patchKnowledgeBaseEmbedding(id: string, vectorStr: string) {
     try {
       return await this.prisma.$executeRaw`UPDATE "knowledge_base" SET embedding = ${vectorStr}::vector(1024) WHERE id = ${id}`
     } catch (error) {
@@ -43,7 +43,7 @@ export class KnowledgeBaseFaqRepository {
     }
   }
 
-  async updateKnowledgeBase(id: string, dto: UpdateKnowledgeBaseDto) {
+  async patchKnowledgeBase(id: string, dto: UpdateKnowledgeBaseDto) {
     try {
       return await this.prisma.knowledgeBase.update({
         where: { id },
@@ -58,7 +58,7 @@ export class KnowledgeBaseFaqRepository {
     }
   }
 
-  async updateKnowledgeBaseActive(id: string, isActive: boolean) {
+  async patchKnowledgeBaseActive(id: string, isActive: boolean) {
     try {
       return await this.prisma.knowledgeBase.update({
         where: { id },
@@ -69,7 +69,7 @@ export class KnowledgeBaseFaqRepository {
     }
   }
 
-  async deleteChatCache() {
+  async deleteKnowledgeBaseChat() {
     try {
       return await this.prisma.chatCache.deleteMany({})
     } catch (error) {
@@ -79,7 +79,7 @@ export class KnowledgeBaseFaqRepository {
 
   // ─── FAQ Manager Methods ─────────────────────────────────────────────────
 
-  async findFaqManagerMany(userId: string) {
+  async getFaqManagerMany(userId: string) {
     try {
       return await this.prisma.knowledgeBase.findMany({
         where: { type: 'faq', userId, isActive: true },
@@ -90,7 +90,7 @@ export class KnowledgeBaseFaqRepository {
     }
   }
 
-  async createFaqManager(userId: string, dto: CreateFaqManagerDto) {
+  async postFaqManager(userId: string, dto: CreateFaqManagerDto) {
     try {
       return await this.prisma.knowledgeBase.create({
         data: {
@@ -107,7 +107,7 @@ export class KnowledgeBaseFaqRepository {
     }
   }
 
-  async findFaqManagerById(id: string, userId: string) {
+  async getFaqManagerById(id: string, userId: string) {
     try {
       return await this.prisma.knowledgeBase.findFirst({
         where: { id, type: 'faq', userId },

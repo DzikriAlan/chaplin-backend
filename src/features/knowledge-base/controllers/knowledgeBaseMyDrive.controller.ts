@@ -32,12 +32,12 @@ export class KnowledgeBaseMyDriveController {
 
   @Get('files')
   @ApiOperation({ summary: 'List uploaded files' })
-  async fetchUploadFiles(@CurrentUser() user: CurrentUserPayload, @Query('folderId') folderId: string) {
+  async loadUploadFiles(@CurrentUser() user: CurrentUserPayload, @Query('folderId') folderId: string) {
     try {
-      return await this.myDriveService.getUploadFilesList(user.id, folderId ?? null)
+      return await this.myDriveService.fetchUploadFilesList(user.id, folderId ?? null)
     } catch (error) {
       if (error instanceof HttpException) throw error
-      this.logger.error('Unexpected error in fetchUploadFiles', error)
+      this.logger.error('Unexpected error in loadUploadFiles', error)
       throw new InternalServerErrorException()
     }
   }
@@ -58,12 +58,12 @@ export class KnowledgeBaseMyDriveController {
 
   @Get('folders')
   @ApiOperation({ summary: 'List upload folders' })
-  async fetchUploadFolders(@CurrentUser() user: CurrentUserPayload) {
+  async loadUploadFolders(@CurrentUser() user: CurrentUserPayload) {
     try {
-      return await this.myDriveService.getUploadFoldersList(user.id)
+      return await this.myDriveService.fetchUploadFoldersList(user.id)
     } catch (error) {
       if (error instanceof HttpException) throw error
-      this.logger.error('Unexpected error in fetchUploadFolders', error)
+      this.logger.error('Unexpected error in loadUploadFolders', error)
       throw new InternalServerErrorException()
     }
   }

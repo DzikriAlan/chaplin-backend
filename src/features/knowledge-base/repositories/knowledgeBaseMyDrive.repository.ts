@@ -7,7 +7,7 @@ import type { CreateUploadFolderDto, CreateUploadSignedUrlDto } from '../dto/kno
 export class KnowledgeBaseMyDriveRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findMyDriveFoldersList(userId: string) {
+  async getMyDriveFoldersList(userId: string) {
     try {
       return await this.prisma.knowledgeBase.findMany({
         where: { type: 'myDrive', userId, fileUrl: null },
@@ -18,7 +18,7 @@ export class KnowledgeBaseMyDriveRepository {
     }
   }
 
-  async createMyDriveFolder(userId: string, dto: CreateUploadFolderDto) {
+  async postMyDriveFolder(userId: string, dto: CreateUploadFolderDto) {
     try {
       return await this.prisma.knowledgeBase.create({
         data: {
@@ -43,7 +43,7 @@ export class KnowledgeBaseMyDriveRepository {
     }
   }
 
-  async findMyDriveFilesList(userId: string, folderId?: string | null) {
+  async getMyDriveFilesList(userId: string, folderId?: string | null) {
     try {
       return await this.prisma.knowledgeBase.findMany({
         where: {
@@ -59,7 +59,7 @@ export class KnowledgeBaseMyDriveRepository {
     }
   }
 
-  async createMyDriveFile(userId: string, dto: CreateUploadSignedUrlDto, fileUrl: string, size: number) {
+  async postMyDriveFile(userId: string, dto: CreateUploadSignedUrlDto, fileUrl: string, size: number) {
     try {
       return await this.prisma.knowledgeBase.create({
         data: {

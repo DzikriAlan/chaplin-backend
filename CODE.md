@@ -67,45 +67,127 @@ src/shared/
     └── paginated-result.ts            # PaginatedResult<T> shape for pagination meta
 ```
 
-# Penamaan Function
+# Function Naming Rules
 
-Nama function tidak mengikuti struktur folder, tetapi mengikuti seluruh resource endpoint agar tetap jelas dan mudah dicari.
+Penamaan function menggunakan format:
 
-## Aturan
+```text
+{prefix}{ResourceName}
+```
 
-Dari URL endpoint, buang:
+* `ResourceName` menggunakan `PascalCase`
+* Mengikuti nama resource dari endpoint setelah mengabaikan:
 
-* Base URL / domain
-* Prefix `api`
-* Versioning dengan pola `v{angka}` (`v1`, `v2`, dst)
-* Segmen dinamis (`{id}`, `{type}`, dst)
+  * base URL
+  * prefix `api`
+  * versioning (`v1`, `v2`, dst.)
+  * parameter dinamis (`{id}`, `{type}`, dst.)
 
-Gabungkan seluruh segmen yang tersisa menjadi `PascalCase`, lalu tambahkan prefix sesuai jenis function.
+**Contoh**
 
-## Prefix Function
+| Endpoint                                      | ResourceName           | Function                      |
+| --------------------------------------------- | ---------------------- | ----------------------------- |
+| `/api/v1/users/profile`                       | `UsersProfile`         | `fetchUsersProfile()`         |
+| `/api/v1/users/profile`                       | `UsersProfile`         | `storeUsersProfile()`         |
+| `/api/v1/ai-search/register/file/{type}/{id}` | `AiSearchRegisterFile` | `fetchAiSearchRegisterFile()` |
 
-| Jenis             | Prefix     | Contoh                           |
-| ----------------- | ---------- | -------------------------------- |
-| GET (single/list) | `get`      | `getUsersProfile()`              |
-| POST              | `create`   | `createUsersProfile()`           |
-| PUT/PATCH         | `update`   | `updateUsersProfile()`           |
-| DELETE            | `delete`   | `deleteUsersProfile()`           |
-| Upload file       | `upload`   | `uploadAiSearchRegisterFile()`   |
-| Download file     | `download` | `downloadAiSearchRegisterFile()` |
-| SSE / Stream      | `stream`   | `streamNotifications()`          |
+---
+# Prefix Rules
 
-## Contoh
+> Setiap layer memiliki kumpulan prefix sendiri dan tidak boleh saling digunakan.
 
-| URL                                           | Function Name                  |
-| --------------------------------------------- | ------------------------------ |
-| `/api/v1/users/profile`                       | `getUsersProfile()`            |
-| `/api/v1/users/profile` (POST)                | `createUsersProfile()`         |
-| `/api/v1/users/profile/{id}` (PATCH)          | `updateUsersProfile()`         |
-| `/api/v1/users/profile/{id}` (DELETE)         | `deleteUsersProfile()`         |
-| `/api/v1/ai-search/register/file/{type}/{id}` | `uploadAiSearchRegisterFile()` |
-| `/api/v1/notifications/stream`                | `streamNotifications()`        |
+| Prefix    | Repository | Service | Controller |
+| --------- | :--------: | :-----: | :--------: |
+| `get`     |      ✅     |    ❌    |      ❌     |
+| `post`    |      ✅     |    ❌    |      ❌     |
+| `update`  |      ✅     |    ❌    |      ❌     |
+| `delete`  |      ✅     |    ❌    |      ❌     |
+| `fetch`   |      ❌     |    ✅    |      ❌     |
+| `store`   |      ❌     |    ✅    |      ❌     |
+| `change`  |      ❌     |    ✅    |      ❌     |
+| `remove`  |      ❌     |    ✅    |      ❌     |
+| `load`    |      ❌     |    ❌    |      ✅     |
+| `save`    |      ❌     |    ❌    |      ✅     |
+| `modify`  |      ❌     |    ❌    |      ✅     |
+| `destroy` |      ❌     |    ❌    |      ✅     |
 
-> Nama function selalu menggunakan seluruh resource path (`resourceName`) dalam format `PascalCase`, dengan awalan yang merepresentasikan aksi HTTP atau tujuan function.
+---
+
+# Convention per Layer
+
+## Repository
+
+Repository merepresentasikan operasi datasource atau HTTP.
+
+```ts
+getUsersProfile()
+getUsersProfileMany()
+postUsersProfile()
+updateUsersProfile()
+deleteUsersProfile()
+```
+
+---
+
+## Service
+
+Service merepresentasikan business logic.
+
+```ts
+fetchUsersProfile()
+fetchUsersProfileList()
+storeUsersProfile()
+changeUsersProfile()
+removeUsersProfile()
+```
+
+---
+
+## Controller
+
+Controller menangani request dari luar dan memanggil service.
+
+```ts
+loadUsersProfile()
+saveUsersProfile()
+modifyUsersProfile()
+destroyUsersProfile()
+```
+
+---
+
+# Contoh Mapping
+
+| HTTP Method | Repository             | Service                | Controller              |
+| ----------- | ---------------------- | ---------------------- | ----------------------- |
+| GET         | `getUsersProfile()`    | `fetchUsersProfile()`  | `loadUsersProfile()`    |
+| POST        | `postUsersProfile()`   | `storeUsersProfile()`  | `saveUsersProfile()`    |
+| PUT         | `updateUsersProfile()` | `changeUsersProfile()` | `modifyUsersProfile()`  |
+| PATCH       | `updateUsersProfile()` | `changeUsersProfile()` | `modifyUsersProfile()`  |
+| DELETE      | `deleteUsersProfile()` | `removeUsersProfile()` | `destroyUsersProfile()` |
+
+---
+
+# Larangan
+
+Hindari penggunaan prefix lain agar seluruh project memiliki vocabulary yang terbatas dan konsisten.
+
+```ts
+createUsersProfile()
+findUsersProfile()
+existsUsersProfile()
+validateUsersProfile()
+transformUsersProfile()
+mapUsersProfile()
+buildUsersProfile()
+parseUsersProfile()
+generateUsersProfile()
+calculateUsersProfile()
+processUsersProfile()
+executeUsersProfile()
+runUsersProfile()
+handleUsersProfile()
+```
 
 
 ### `prisma.service.ts` — Singleton Wajib
@@ -451,26 +533,6 @@ export class SharedModule {}
 ```
 
 ---
-
-## Function Naming Rules
-
-| Prefix | Repository | Service | Controller | Utilisasi (private method) |
-|---|:---:|:---:|:---:|:---:|
-| `find` | ✅ | ❌ | ❌ | ✅ |
-| `create` | ✅ | ❌ | ❌ | ✅ |
-| `update` | ✅ | ❌ | ❌ | ✅ |
-| `delete` | ✅ | ❌ | ❌ | ✅ |
-| `get` | ❌ | ✅ | ❌ | ✅ |
-| `store` | ❌ | ✅ | ❌ | ✅ |
-| `change` | ❌ | ✅ | ❌ | ✅ |
-| `remove` | ❌ | ✅ | ❌ | ✅ |
-| `fetch` | ❌ | ❌ | ✅ | ❌ |
-| `save` | ❌ | ❌ | ✅ | ❌ |
-| `modify` | ❌ | ❌ | ✅ | ❌ |
-| `destroy` | ❌ | ❌ | ✅ | ❌ |
-
----
-
 ## Penamaan Folder & File
 
 Dari URL endpoint, buang segmen berikut:
@@ -484,14 +546,13 @@ Sisa path yang bermakna dibagi menjadi tiga konsep:
 |---|---|---|
 | **folder-name** | Segmen **pertama** sisa path, `kebab-case` | Nama folder domain |
 | **filename** | `folder-name` dikonversi ke `camelCase` | Prefix nama file `.ts` |
-| **ResourceName** | Gabungan semua segmen, digabung `PascalCase` | Nama TypeScript: DTO, Entity, Service, dll |
 
 **Contoh:**
 
-| URL | folder-name | filename | ResourceName |
+| URL | folder-name | filename |
 |---|---|---|---|
-| `/api/v1/users/profile` | `users` | `users` | `UsersProfile` |
-| `/api/v1/ai-search/register/file/{type}/{id}` | `ai-search` | `aiSearch` | `AiSearchRegisterFile` |
+| `/api/v1/users/profile` | `users` | `users` |
+| `/api/v1/ai-search/register/file/{type}/{id}` | `ai-search` | `aiSearch`|
 
 > Segmen dinamis (`{param}`) selalu diabaikan.
 

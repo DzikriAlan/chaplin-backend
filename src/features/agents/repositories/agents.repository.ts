@@ -7,7 +7,7 @@ import type { CreateAgentsDto, UpdateAgentsDto } from '../dto/agents.dto'
 export class AgentsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAgentsMany() {
+  async getAgentsMany() {
     try {
       return await this.prisma.agent.findMany({ orderBy: { createdAt: 'desc' } })
     } catch (error) {
@@ -15,7 +15,7 @@ export class AgentsRepository {
     }
   }
 
-  async createAgents(dto: CreateAgentsDto) {
+  async postAgents(dto: CreateAgentsDto) {
     try {
       return await this.prisma.agent.create({
         data: {
@@ -43,7 +43,7 @@ export class AgentsRepository {
     }
   }
 
-  async updateAgents(id: string, dto: UpdateAgentsDto) {
+  async patchAgents(id: string, dto: UpdateAgentsDto) {
     try {
       return await this.prisma.agent.update({
         where: { id },

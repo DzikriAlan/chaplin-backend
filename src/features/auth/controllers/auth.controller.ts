@@ -16,12 +16,12 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get current user' })
-  async fetchAuthMe(@CurrentUser() user: CurrentUserPayload) {
+  async loadAuthMe(@CurrentUser() user: CurrentUserPayload) {
     try {
       return this.authService.getCurrentUser(user.id, user.email)
     } catch (error) {
       if (error instanceof HttpException) throw error
-      this.logger.error('Unexpected error in fetchAuthMe', error)
+      this.logger.error('Unexpected error in loadAuthMe', error)
       throw new InternalServerErrorException()
     }
   }

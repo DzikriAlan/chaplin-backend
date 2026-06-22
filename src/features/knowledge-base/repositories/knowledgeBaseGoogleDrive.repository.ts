@@ -7,7 +7,7 @@ import type { SelectDriveFolderDto, UpdateDocumentsDto } from '../dto/knowledgeB
 export class KnowledgeBaseGoogleDriveRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findGoogleDriveConfig(userId: string) {
+  async getGoogleDriveConfig(userId: string) {
     try {
       return await this.prisma.knowledgeBase.findFirst({ where: { type: 'googleDrive', userId } })
     } catch (error) {
@@ -15,7 +15,7 @@ export class KnowledgeBaseGoogleDriveRepository {
     }
   }
 
-  async createGoogleDriveConfig(userId: string, dto: SelectDriveFolderDto, accessToken: string, refreshToken: string) {
+  async postGoogleDriveConfig(userId: string, dto: SelectDriveFolderDto, accessToken: string, refreshToken: string) {
     try {
       return await this.prisma.knowledgeBase.create({
         data: {
@@ -35,7 +35,7 @@ export class KnowledgeBaseGoogleDriveRepository {
     }
   }
 
-  async updateGoogleDriveConfig(userId: string, dto: SelectDriveFolderDto) {
+  async patchGoogleDriveConfig(userId: string, dto: SelectDriveFolderDto) {
     try {
       return await this.prisma.knowledgeBase.updateMany({
         where: { type: 'googleDrive', userId },
@@ -58,7 +58,7 @@ export class KnowledgeBaseGoogleDriveRepository {
     }
   }
 
-  async findGoogleDriveDocumentsList(userId: string) {
+  async getGoogleDriveDocumentsList(userId: string) {
     try {
       return await this.prisma.knowledgeBase.findMany({
         where: { type: 'googleDrive', userId, isActive: true },
@@ -69,7 +69,7 @@ export class KnowledgeBaseGoogleDriveRepository {
     }
   }
 
-  async updateGoogleDriveDocument(id: string, dto: UpdateDocumentsDto) {
+  async patchGoogleDriveDocument(id: string, dto: UpdateDocumentsDto) {
     try {
       return await this.prisma.knowledgeBase.update({
         where: { id },

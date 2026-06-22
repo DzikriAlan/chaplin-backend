@@ -12,12 +12,12 @@ export class AgentsController {
 
   @Get()
   @ApiOperation({ summary: 'Get agents list' })
-  async fetchAgentsList() {
+  async loadAgentsList() {
     try {
-      return await this.agentsService.getAgentsList()
+      return await this.agentsService.fetchAgentsList()
     } catch (error) {
       if (error instanceof HttpException) throw error
-      this.logger.error('Unexpected error in fetchAgentsList', error)
+      this.logger.error('Unexpected error in loadAgentsList', error)
       throw new InternalServerErrorException()
     }
   }

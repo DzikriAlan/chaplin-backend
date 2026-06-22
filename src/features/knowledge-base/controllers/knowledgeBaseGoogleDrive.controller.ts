@@ -33,15 +33,16 @@ export class KnowledgeBaseGoogleDriveController {
   async loadDriveCallback(
     @Query('code') code: string,
     @Query('folderId') folderId: string,
-    @Res() res: Response,
+    @Query('state') state?: string,
+    @Res() res?: Response,
   ) {
     try {
-      const redirectUrl = await this.googleDriveService.storeDriveCallback(code, folderId)
-      res.redirect(redirectUrl)
+      const redirectUrl = await this.googleDriveService.storeDriveCallback(code, folderId, state)
+      if (res) res.redirect(redirectUrl)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in loadDriveCallback', error)
-      if (!res.headersSent) throw new InternalServerErrorException()
+      if (res && !res.headersSent) throw new InternalServerErrorException()
     }
   }
 

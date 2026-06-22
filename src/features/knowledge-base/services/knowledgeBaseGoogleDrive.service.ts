@@ -1,4 +1,6 @@
 import { Injectable, Logger, InternalServerErrorException, BadRequestException, HttpException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { google } from 'googleapis'
 import { KnowledgeBaseGoogleDriveRepository } from '../repositories/knowledgeBaseGoogleDrive.repository'
 import type { SelectDriveFolderDto, UpdateDocumentsDto, DeleteDocumentsDto, SyncDocumentsDto } from '../dto/knowledgeBaseGoogleDrive.dto'
 
@@ -6,12 +8,28 @@ import type { SelectDriveFolderDto, UpdateDocumentsDto, DeleteDocumentsDto, Sync
 export class KnowledgeBaseGoogleDriveService {
   private readonly logger = new Logger(KnowledgeBaseGoogleDriveService.name)
 
-  constructor(private readonly driveRepository: KnowledgeBaseGoogleDriveRepository) {}
+  constructor(
+    private readonly driveRepository: KnowledgeBaseGoogleDriveRepository,
+    private readonly configService: ConfigService,
+  ) {}
 
   async fetchDriveAuthUrl(): Promise<string> {
     try {
-      // TODO: Implement Google OAuth URL generation
-      throw new BadRequestException('Google Drive OAuth not yet configured')
+      const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID')
+      const redirectUri = this.configService.get<string>('GOOGLE_DRIVE_REDIRECT_URI')
+
+      if (!clientId || !redirectUri) {
+        throw new BadRequestException('Google Drive OAuth credentials not configured')
+      }
+
+      const oauth2Client = new google.auth.OAuth2(clientId, this.configService.get<string>('GOOGLE_CLIENT_SECRET'), redirectUri)
+
+      const authUrl = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: ['https://www.googleapis.com/auth/drive.readonly'],
+      })
+
+      return authUrl
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to get drive auth URL', error)
@@ -19,10 +37,39 @@ export class KnowledgeBaseGoogleDriveService {
     }
   }
 
-  async storeDriveCallback(code: string, folderId: string): Promise<string> {
+  async storeDriveCallback(code: string, folderId: string, userId?: string): Promise<string> {
     try {
-      // TODO: Implement OAuth callback processing
-      throw new BadRequestException('Google Drive OAuth callback not yet implemented')
+      if (!code) throw new BadRequestException('Authorization code is required')
+
+      const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID')
+      const clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET')
+      const redirectUri = this.configService.get<string>('GOOGLE_DRIVE_REDIRECT_URI')
+
+      if (!clientId || !clientSecret || !redirectUri) {
+        throw new BadRequestException('Google Drive OAuth credentials not configured')
+      }
+
+      const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUri)
+      const { tokens } = await oauth2Client.getToken(code)
+
+      if (!tokens.access_token || !tokens.refresh_token) {
+        throw new InternalServerErrorException('Failed to obtain access and refresh tokens')
+      }
+
+      const drive = google.drive({ version: 'v3', auth: oauth2Client })
+      const folder = await drive.files.get({ fileId: folderId, fields: 'name,mimeType' })
+
+      if (userId && folderId) {
+        const existing = await this.driveRepository.getGoogleDriveConfig(userId)
+        const folderDto = { folderId, folderName: folder.data.name || 'Unknown' }
+        if (existing) {
+          await this.driveRepository.patchGoogleDriveConfig(userId, folderDto)
+        } else {
+          await this.driveRepository.postGoogleDriveConfig(userId, folderDto, tokens.access_token, tokens.refresh_token)
+        }
+      }
+
+      return `${redirectUri}?success=true&folderId=${folderId}&folderName=${folder.data.name || 'Unknown'}`
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to process drive callback', error)
@@ -41,10 +88,27 @@ export class KnowledgeBaseGoogleDriveService {
     }
   }
 
-  async fetchDriveFolders(): Promise<any[]> {
+  async fetchDriveFolders(): Promise<Record<string, unknown>[]> {
     try {
-      // TODO: Implement folder listing from Google Drive API
-      return []
+      const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID')
+      const clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET')
+      const redirectUri = this.configService.get<string>('GOOGLE_DRIVE_REDIRECT_URI')
+
+      if (!clientId || !clientSecret || !redirectUri) {
+        throw new BadRequestException('Google Drive OAuth credentials not configured')
+      }
+
+      const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUri)
+      const drive = google.drive({ version: 'v3', auth: oauth2Client })
+
+      const response = await drive.files.list({
+        q: "mimeType='application/vnd.google-apps.folder' and trashed=false",
+        spaces: 'drive',
+        fields: 'files(id, name, mimeType)',
+        pageSize: 50,
+      })
+
+      return (response.data.files || []) as Record<string, unknown>[]
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to get Google Drive folders', error)
@@ -56,12 +120,14 @@ export class KnowledgeBaseGoogleDriveService {
     try {
       if (!userId) throw new BadRequestException('User ID is required')
       if (!dto.folderId) throw new BadRequestException('Folder ID is required')
+
       const existing = await this.driveRepository.getGoogleDriveConfig(userId)
-      if (existing) {
-        return await this.driveRepository.patchGoogleDriveConfig(userId, dto)
+      if (!existing) {
+        throw new BadRequestException('Google Drive OAuth not completed. Please authorize first.')
       }
-      // TODO: Get actual access token and refresh token from OAuth
-      return await this.driveRepository.postGoogleDriveConfig(userId, dto, 'access-token', 'refresh-token')
+
+      const result = await this.driveRepository.patchGoogleDriveConfig(userId, dto)
+      return result
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to store Google Drive folders', error)
@@ -122,8 +188,40 @@ export class KnowledgeBaseGoogleDriveService {
   async storeDocumentsSync(userId: string, dto: SyncDocumentsDto) {
     try {
       if (!userId) throw new BadRequestException('User ID is required')
-      // TODO: Implement sync logic from Google Drive
-      return { success: true, synced: dto.fileIds?.length || 0 }
+
+      const config = await this.driveRepository.getGoogleDriveConfig(userId)
+      if (!config) {
+        throw new BadRequestException('Google Drive config not found')
+      }
+
+      const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID')
+      const clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET')
+      const redirectUri = this.configService.get<string>('GOOGLE_DRIVE_REDIRECT_URI')
+
+      if (!clientId || !clientSecret || !redirectUri) {
+        throw new BadRequestException('Google Drive OAuth credentials not configured')
+      }
+
+      const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUri)
+      oauth2Client.setCredentials({ refresh_token: config.refreshToken })
+
+      const drive = google.drive({ version: 'v3', auth: oauth2Client })
+
+      const fileIds = dto.fileIds || []
+      const fileQueries = fileIds.map((id) => `id='${id}'`).join(' or ')
+      const query = fileIds.length > 0 ? `(${fileQueries})` : `'${config.folderId}' in parents and trashed=false`
+
+      const response = await drive.files.list({
+        q: query,
+        spaces: 'drive',
+        fields: 'files(id, name, mimeType, webViewLink)',
+        pageSize: 100,
+      })
+
+      const files = response.data.files || []
+      const synced = files.length
+
+      return { success: true, synced, total: files.length }
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to sync documents', error)

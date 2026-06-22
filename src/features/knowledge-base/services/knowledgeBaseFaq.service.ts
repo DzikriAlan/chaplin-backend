@@ -96,7 +96,7 @@ export class KnowledgeBaseFaqService {
       if (!userId) throw new BadRequestException('User ID is required')
       const faq = await this.faqRepository.getFaqManagerById(id, userId)
       if (!faq) throw new BadRequestException('FAQ not found')
-      await this.faqRepository.deleteFaqManager(id, userId)
+      await this.faqRepository.deleteFaqManager(id)
       return { success: true }
     } catch (error) {
       if (error instanceof HttpException) throw error

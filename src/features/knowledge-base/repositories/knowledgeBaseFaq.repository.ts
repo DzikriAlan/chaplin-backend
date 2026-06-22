@@ -117,7 +117,7 @@ export class KnowledgeBaseFaqRepository {
     }
   }
 
-  async deleteFaqManager(id: string, userId: string) {
+  async deleteFaqManager(id: string) {
     try {
       return await this.prisma.knowledgeBase.update({
         where: { id },

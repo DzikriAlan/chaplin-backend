@@ -16,7 +16,7 @@ export class UsageSaldoRepository {
 
   // ─── Balance Methods ─────────────────────────────────────────────────────────
 
-  async findBalance(userId: string) {
+  async getBalance(userId: string) {
     try {
       return await this.prisma.userBalance.findUnique({ where: { userId } })
     } catch (error) {
@@ -24,7 +24,7 @@ export class UsageSaldoRepository {
     }
   }
 
-  async createBalance(userId: string) {
+  async postBalance(userId: string) {
     try {
       return await this.prisma.userBalance.create({ data: { userId } })
     } catch (error) {
@@ -32,7 +32,7 @@ export class UsageSaldoRepository {
     }
   }
 
-  async updateBalanceTopup(userId: string, balanceBefore: number, amount: number) {
+  async updateBalance(userId: string, balanceBefore: number, amount: number) {
     try {
       const balanceAfter = balanceBefore + amount
       const [updated] = await this.prisma.$transaction([
@@ -49,7 +49,7 @@ export class UsageSaldoRepository {
 
   // ─── Usage Methods ───────────────────────────────────────────────────────────
 
-  async findUsageLogs(filter: UsageFilter) {
+  async getUsageLogs(filter: UsageFilter) {
     try {
       const dateFilter = this.buildDateFilter(filter.month, filter.year)
       const where = { userId: filter.userId, activityType: { in: ['chat', 'sync'] as string[] }, ...dateFilter }

@@ -20,7 +20,7 @@ export class UsageSaldoController {
   @ApiOperation({ summary: 'Get user balance' })
   async loadBalance(@CurrentUser() user: CurrentUserPayload) {
     try {
-      return await this.usageSaldoService.getBalance(user.id)
+      return await this.usageSaldoService.fetchBalance(user.id)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in loadBalance', error)
@@ -46,7 +46,7 @@ export class UsageSaldoController {
   @ApiOperation({ summary: 'Get usage logs' })
   async loadUsageLogs(@Query() query: QueryUsageSaldoLogsDto, @CurrentUser() user: CurrentUserPayload) {
     try {
-      return await this.usageSaldoService.getUsageLogs(user.id, query)
+      return await this.usageSaldoService.fetchUsageLogs(user.id, query)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Unexpected error in fetchUsageLogs', error)

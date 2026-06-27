@@ -5,7 +5,7 @@ import { PrismaService } from '../../../shared/prisma/prisma.service'
 export class AuthRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findOrCreateUserByEmail(email: string, name?: string) {
+  async getUserByEmailOrCreate(email: string, name?: string) {
     return this.prisma.user.upsert({
       where: { email },
       create: { email, name: name ?? email.split('@')[0] },

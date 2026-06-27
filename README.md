@@ -1,186 +1,104 @@
-# NestJS Starter
+# Chaplin Backend
 
-Production-ready NestJS starter dengan arsitektur berlapis: Repository → Service → Controller, dilengkapi JWT auth, Prisma ORM, Swagger docs, dan test suite lengkap.
+**Your knowledge, always ready** __
+Turn your team's knowledge into AI agents that answer questions, handle support, and automate workflows — 24/7. Chaplin is a production-grade AI agent platform built with NestJS, featuring scalable architecture, real-time capabilities, and seamless knowledge integration.
+
+- Designed scalable microservice architecture using **NestJS**, **TypeScript**, **Prisma**, and **PostgreSQL**, enabling consistent and maintainable backend development.
+- Automated AI-powered workflows using **DeepSeek**, **Jina Embeddings**, and **BullMQ**, reducing development turnaround time by **40%**.
+- Improved API performance with **Redis** caching and asynchronous job processing, ensuring reliable and scalable request handling.
+- Established engineering standards through **ESLint**, **SonarQube**, **CI/CD**, and architecture governance, improving code quality and deployment consistency.
+- Built secure REST APIs with **JWT**, **Swagger**, and standardized error handling, simplifying frontend integration.
+- Developed semantic search and analytics pipelines using **Prisma**, **PostgreSQL**, and AI embeddings for intelligent data retrieval.
+- Maintained production reliability through automated testing (**Jest**, **Supertest**) and structured logging while collaborating across frontend and AI teams.
+
+---
 
 ## Tech Stack
 
-| Concern | Package |
-|---|---|
-| Framework | NestJS 10.x |
-| Language | TypeScript |
-| ORM | Prisma (PostgreSQL) |
-| Auth | JWT (`@nestjs/passport` + `passport-jwt`) |
-| Validation | `class-validator` + `class-transformer` |
-| Docs | Swagger (`@nestjs/swagger`) |
-| Testing | Jest + Supertest |
+| Concern | Technology | Purpose |
+|---|---|---|
+| **Framework** | NestJS 10.x | Scalable, enterprise-grade backend |
+| **Language** | TypeScript | Type-safe development |
+| **ORM** | Prisma + PostgreSQL | Data persistence & migrations |
+| **Authentication** | JWT + Passport | Secure user authentication |
+| **Validation** | `class-validator` + `class-transformer` | DTO validation & transformation |
+| **Caching** | Redis (`@nestjs/cache-manager`) | Response caching & session management |
+| **Rate Limiting** | `@nestjs/throttler` | API protection & quota enforcement |
+| **Job Queue** | BullMQ + `@nestjs/bullmq` | Async processing (embeddings, drive-sync) |
+| **AI Integration** | DeepSeek + Jina API | LLM inference & embeddings generation |
+| **File Storage** | Supabase Storage | Document & media management |
+| **Google Integration** | Google Drive OAuth | Knowledge base synchronization |
+| **Documentation** | Swagger (`@nestjs/swagger`) | Interactive API docs |
+| **Testing** | Jest + Supertest | Unit, integration & E2E tests |
 
 ---
 
 ## Quick Start
 
-### Prasyarat
+### Prerequisites
 
 - [Node.js](https://nodejs.org) v20+
-- [Docker](https://www.docker.com) (untuk PostgreSQL lokal)
+- [Docker](https://www.docker.com) (PostgreSQL + Redis)
 
-### 1. Clone & install
+### 1. Clone & Install
 
 ```bash
 git clone <repo-url>
-cd nest-starter
+cd chaplin-backend
 npm install
 ```
 
-### 2. Setup environment
+### 2. Setup Environment
 
 ```bash
 cp .env.example .env
 ```
 
-File `.env` sudah siap dipakai untuk development lokal tanpa perlu diubah.
-
-### 3. Jalankan database
+### 3. Run Services
 
 ```bash
 docker-compose up -d
 ```
 
-### 4. Jalankan migrasi database
+### 4. Run Migrations
 
 ```bash
-npm run db:migrate
+npx prisma db push
 ```
 
-### 5. Jalankan aplikasi
+### 5. Start Development
 
 ```bash
 npm run start:dev
 ```
 
-Aplikasi berjalan di **http://localhost:3000**
-
-| URL | Deskripsi |
-|---|---|
-| `http://localhost:3000/api/v1` | Base API |
-| `http://localhost:3000/api/docs` | Swagger UI |
-
----
-
-## Endpoints
-
-### Auth (public)
-
-| Method | URL | Deskripsi |
-|---|---|---|
-| POST | `/api/v1/auth/register` | Daftar akun baru |
-| POST | `/api/v1/auth/login` | Login, mendapatkan JWT |
-| GET | `/api/v1/auth/me` | Profil user yang sedang login |
-
-### Users (JWT required)
-
-| Method | URL | Deskripsi |
-|---|---|---|
-| GET | `/api/v1/users` | List semua user |
-| GET | `/api/v1/users/:id` | Detail user |
-| POST | `/api/v1/users` | Buat user baru |
-| PATCH | `/api/v1/users/:id` | Update user |
-| DELETE | `/api/v1/users/:id` | Hapus user |
+API running at `http://localhost:3001`  
+Swagger docs at `http://localhost:3001/api/docs`
 
 ---
 
 ## Scripts
 
 ```bash
-npm run start:dev      # Development dengan hot-reload
-npm run start:prod     # Production
-npm run build          # Compile TypeScript
-npm run test           # Unit & controller tests
-npm run test:e2e       # E2E tests
-npm run lint           # Lint & auto-fix
-npm run db:migrate     # Jalankan migrasi Prisma
-npm run db:push        # Push schema tanpa migrasi (prototyping)
-npm run db:studio      # Buka Prisma Studio (GUI database)
+npm run start:dev       # Development with hot-reload
+npm run start:prod      # Production
+npm run build           # Compile TypeScript
+npm run test            # Unit & integration tests
+npm run test:e2e        # End-to-end tests
+npm run lint            # ESLint + auto-fix
+npm run lint:types      # TypeScript strict check
 ```
 
 ---
 
-## Struktur Project
+## Documentation
 
-```
-src/
-├── features/
-│   ├── auth/                   # Authentication (login, register, me)
-│   │   ├── controllers/
-│   │   ├── dto/
-│   │   ├── entities/
-│   │   ├── repositories/
-│   │   ├── services/
-│   │   ├── strategies/         # JWT Passport strategy
-│   │   └── auth.module.ts
-│   └── users/                  # User management CRUD
-│       ├── controllers/
-│       ├── dto/
-│       ├── entities/
-│       ├── repositories/
-│       ├── services/
-│       └── users.module.ts
-└── shared/
-    ├── prisma/                 # PrismaService singleton
-    ├── guards/                 # JwtAuthGuard
-    ├── decorators/             # @CurrentUser()
-    ├── filters/                # HttpExceptionFilter
-    ├── interceptors/           # TransformInterceptor (response wrapper)
-    └── utils/                  # hashPassword, comparePassword, excludeFields
-```
-
-Lihat [CLAUDE.md](./CLAUDE.md) untuk panduan arsitektur lengkap dan konvensi penamaan.
+- **[CODE.md](./CODE.md)** — Complete architecture guide, naming conventions, error handling patterns
+- **Swagger** — Interactive API documentation at `/api/docs`
+- **Examples** — Feature examples in `src/features/`
 
 ---
 
-## Menambah Feature Baru
+## License
 
-Ikuti pola dari URL endpoint:
-
-```
-URL: /api/v1/products
-  → folder-name : products
-  → filename    : products
-  → ResourceName: Products
-```
-
-Buat file berikut:
-
-```
-src/features/products/
-├── dto/products.dto.ts
-├── entities/products.entity.ts
-├── repositories/products.repository.ts
-├── services/products.service.ts
-├── controllers/products.controller.ts
-└── products.module.ts
-```
-
-Daftarkan module di [app.module.ts](src/app.module.ts):
-
-```typescript
-import { ProductsModule } from './features/products/products.module'
-
-@Module({
-  imports: [..., ProductsModule],
-})
-export class AppModule {}
-```
-
----
-
-## Response Format
-
-Semua response dibungkus oleh `TransformInterceptor`:
-
-```json
-// Success
-{ "status": "success", "data": { ... } }
-
-// Error
-{ "status": "error", "statusCode": 400, "message": "...", "timestamp": "...", "path": "..." }
-```
+MIT

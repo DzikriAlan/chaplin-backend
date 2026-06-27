@@ -15,7 +15,7 @@ export class AuthService {
   }
 
   async storeAuthLogin(dto: AuthLoginDto) {
-    const user = await this.authRepository.findOrCreateUserByEmail(dto.email, dto.name)
+    const user = await this.authRepository.getUserByEmailOrCreate(dto.email, dto.name)
     const token = await this.jwtService.signAsync({ sub: user.id, email: user.email ?? dto.email })
     return { token }
   }

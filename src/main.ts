@@ -30,8 +30,19 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter())
   app.useGlobalInterceptors(new TransformInterceptor())
 
+  const allowedOrigins = new Set(
+    configService
+      .get<string>('ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:3001,http://localhost:4000')
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean),
+  )
+
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:4000'],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.has(origin)) return callback(null, true)
+      callback(new Error(`CORS: origin ${origin} not allowed`))
+    },
     credentials: true,
   })
 

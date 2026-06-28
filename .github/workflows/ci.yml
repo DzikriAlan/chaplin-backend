@@ -3,7 +3,7 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  lint-and-test:
+  lint-and-build:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -11,7 +11,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: nest_starter_test
+          POSTGRES_DB: nest_starter
         ports:
           - 5432:5432
         options: >-
@@ -21,8 +21,8 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nest_starter_test?schema=public
-      JWT_SECRET: ci-test-secret
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nest_starter?schema=public
+      JWT_SECRET: ci-secret
       JWT_EXPIRES_IN: 7d
 
     steps:

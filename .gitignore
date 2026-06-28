@@ -1,49 +1,34 @@
-# Dependencies
-node_modules/
 
-# Build output
-dist/
-
-# Environment — semua varian .env kecuali .env.example
-.env
-.env.*
 !.env.example
-
+# Build output
 # Credentials & secrets
-*.pem
-*.key
-*.p12
-*.pfx
+# Dependencies
+# Environment — semua varian .env kecuali .env.example
+# IDE
+# Logs
+# NestJS
+# OS
+# Prisma
+# Test coverage
+# TypeScript incremental build cache
+*.cer
 *.cert
 *.crt
-*.cer
-secrets/
+*.key
+*.log
+*.p12
+*.pem
+*.pfx
+*.swo
+*.swp
+*.tsbuildinfo
+Thumbs.db
+coverage/
 credentials/
-
-# Prisma
+dist/
+logs/
+node_modules/
+npm-debug.log*
 prisma/dev.db
 prisma/dev.db-journal
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.idea/
-.qodo/
-*.swp
-*.swo
-
-# Test coverage
-coverage/
-
-# NestJS
-.nest/
-
-# TypeScript incremental build cache
-*.tsbuildinfo
+secrets/

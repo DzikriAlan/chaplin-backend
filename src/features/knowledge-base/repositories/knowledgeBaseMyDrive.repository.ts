@@ -16,6 +16,17 @@ export class KnowledgeBaseMyDriveRepository {
     const folders = all.filter((r) => !r.fileUrl)
     const files = all.filter((r) => !!r.fileUrl)
 
+    const mapFile = (fi: (typeof files)[0]) => ({
+      id: fi.id,
+      name: fi.fileName ?? fi.question,
+      size: Number(fi.size ?? 0),
+      mimeType: fi.mimeType ?? '',
+      storagePath: fi.fileUrl ?? '',
+      folderId: fi.folderId ?? null,
+      createdAt: fi.createdAt.toISOString(),
+      updatedAt: fi.updatedAt.toISOString(),
+    })
+
     const buildTree = (parentId: string | null): unknown[] =>
       folders
         .filter((f) => (f.folderId ?? null) === parentId)
@@ -24,23 +35,21 @@ export class KnowledgeBaseMyDriveRepository {
           name: f.folderName ?? f.question,
           parentId: f.folderId ?? null,
           children: buildTree(f.id),
-          files: files
-            .filter((fi) => fi.folderId === f.id)
-            .map((fi) => ({
-              id: fi.id,
-              name: fi.fileName ?? fi.question,
-              size: Number(fi.size ?? 0),
-              mimeType: fi.mimeType ?? '',
-              storagePath: fi.fileUrl ?? '',
-              folderId: fi.folderId ?? null,
-              createdAt: fi.createdAt.toISOString(),
-              updatedAt: fi.updatedAt.toISOString(),
-            })),
+          files: files.filter((fi) => fi.folderId === f.id).map(mapFile),
           createdAt: f.createdAt.toISOString(),
           updatedAt: f.updatedAt.toISOString(),
         }))
 
-    return buildTree(null)
+    const tree = buildTree(null)
+
+    // Files uploaded without a folder appear in a synthetic root entry
+    const rootFiles = files.filter((fi) => !fi.folderId).map(mapFile)
+    if (rootFiles.length > 0) {
+      const now = new Date().toISOString()
+      tree.unshift({ id: '__root__', name: 'Files', parentId: null, children: [], files: rootFiles, createdAt: now, updatedAt: now })
+    }
+
+    return tree
   }
 
   async postMyDriveFolder(userId: string, dto: CreateUploadFolderDto) {
@@ -62,11 +71,7 @@ export class KnowledgeBaseMyDriveRepository {
   }
 
   async deleteMyDriveFolder(id: string) {
-    try {
-      return await this.prisma.knowledgeBase.delete({ where: { id } })
-    } catch (error) {
-      throw handlePrismaError(error, 'knowledgeBase')
-    }
+    return this.deleteRecord(id)
   }
 
   async postMyDriveFile(userId: string, dto: CreateUploadSignedUrlDto, storagePath: string) {
@@ -90,6 +95,10 @@ export class KnowledgeBaseMyDriveRepository {
   }
 
   async deleteMyDriveFile(id: string) {
+    return this.deleteRecord(id)
+  }
+
+  private async deleteRecord(id: string) {
     try {
       return await this.prisma.knowledgeBase.delete({ where: { id } })
     } catch (error) {

@@ -1,23 +1,42 @@
 import { Injectable, Logger, InternalServerErrorException, BadRequestException, HttpException } from '@nestjs/common'
 import { KnowledgeBaseMyDriveRepository } from '../repositories/knowledgeBaseMyDrive.repository'
-import type { CreateUploadSignedUrlDto, CreateUploadFolderDto } from '../dto/knowledgeBaseMyDrive.dto'
+import { SupabaseService } from '../../../shared/services/supabase.service'
+import { CreateUploadSignedUrlDto, CreateUploadFolderDto } from '../dto/knowledgeBaseMyDrive.dto'
+
+const STORAGE_BUCKET = 'uploads'
 
 @Injectable()
 export class KnowledgeBaseMyDriveService {
   private readonly logger = new Logger(KnowledgeBaseMyDriveService.name)
 
-  constructor(private readonly uploadRepository: KnowledgeBaseMyDriveRepository) {}
+  constructor(
+    private readonly uploadRepository: KnowledgeBaseMyDriveRepository,
+    private readonly supabaseService: SupabaseService,
+  ) {}
 
   async storeUploadSignedUrl(userId: string, dto: CreateUploadSignedUrlDto) {
     try {
       if (!userId) throw new BadRequestException('User ID is required')
       if (!dto.fileName || !dto.mimeType) throw new BadRequestException('File name and MIME type are required')
-      // TODO: Generate actual signed URL from S3 or cloud storage
-      const fileId = `file-${Date.now()}`
+
+      const storagePath = `${userId}/${dto.folderId ?? 'root'}/${Date.now()}-${dto.fileName}`
+
+      const { data, error } = await this.supabaseService.storage
+        .from(STORAGE_BUCKET)
+        .createSignedUploadUrl(storagePath)
+
+      if (error || !data) {
+        this.logger.error('Supabase createSignedUploadUrl failed', error)
+        throw new InternalServerErrorException('Failed to create signed upload URL')
+      }
+
+      const file = await this.uploadRepository.postMyDriveFile(userId, dto, data.path)
+
       return {
-        myDriveSignedUrl: `https://storage.example.com/upload/${fileId}`,
-        myDriveFileId: fileId,
-        myDriveExpiresIn: 3600,
+        signedUrl: data.signedUrl,
+        token: data.token,
+        path: data.path,
+        fileId: file.id,
       }
     } catch (error) {
       if (error instanceof HttpException) throw error
@@ -29,7 +48,7 @@ export class KnowledgeBaseMyDriveService {
   async fetchUploadFilesList(userId: string, folderId: string | null) {
     try {
       if (!userId) throw new BadRequestException('User ID is required')
-      return await this.uploadRepository.getMyDriveFilesList(userId, folderId)
+      return await this.uploadRepository.getMyDriveFoldersList(userId)
     } catch (error) {
       if (error instanceof HttpException) throw error
       this.logger.error('Failed to get My Drive files list', error)
@@ -63,7 +82,7 @@ export class KnowledgeBaseMyDriveService {
   async storeUploadFolder(userId: string, dto: CreateUploadFolderDto) {
     try {
       if (!userId) throw new BadRequestException('User ID is required')
-      if (!dto.folderName) throw new BadRequestException('Folder name is required')
+      if (!dto.name) throw new BadRequestException('Folder name is required')
       return await this.uploadRepository.postMyDriveFolder(userId, dto)
     } catch (error) {
       if (error instanceof HttpException) throw error

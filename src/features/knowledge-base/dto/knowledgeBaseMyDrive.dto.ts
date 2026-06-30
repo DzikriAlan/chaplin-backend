@@ -24,7 +24,12 @@ export class CreateUploadSignedUrlDto {
 export class CreateUploadFolderDto {
   @ApiProperty()
   @IsString()
-  folderName: string
+  name: string
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  parentId?: string
 
   @ApiPropertyOptional()
   @IsString()

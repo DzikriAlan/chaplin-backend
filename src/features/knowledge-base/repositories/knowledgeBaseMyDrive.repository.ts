@@ -8,14 +8,39 @@ export class KnowledgeBaseMyDriveRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getMyDriveFoldersList(userId: string) {
-    try {
-      return await this.prisma.knowledgeBase.findMany({
-        where: { type: 'myDrive', userId, fileUrl: null },
-        orderBy: { createdAt: 'desc' },
-      })
-    } catch (error) {
-      throw handlePrismaError(error, 'knowledgeBase')
-    }
+    const all = await this.prisma.knowledgeBase.findMany({
+      where: { type: 'myDrive', userId },
+      orderBy: { createdAt: 'asc' },
+    }).catch((error) => { throw handlePrismaError(error, 'knowledgeBase') })
+
+    const folders = all.filter((r) => !r.fileUrl)
+    const files = all.filter((r) => !!r.fileUrl)
+
+    const buildTree = (parentId: string | null): unknown[] =>
+      folders
+        .filter((f) => (f.folderId ?? null) === parentId)
+        .map((f) => ({
+          id: f.id,
+          name: f.folderName ?? f.question,
+          parentId: f.folderId ?? null,
+          children: buildTree(f.id),
+          files: files
+            .filter((fi) => fi.folderId === f.id)
+            .map((fi) => ({
+              id: fi.id,
+              name: fi.fileName ?? fi.question,
+              size: Number(fi.size ?? 0),
+              mimeType: fi.mimeType ?? '',
+              storagePath: fi.fileUrl ?? '',
+              folderId: fi.folderId ?? null,
+              createdAt: fi.createdAt.toISOString(),
+              updatedAt: fi.updatedAt.toISOString(),
+            })),
+          createdAt: f.createdAt.toISOString(),
+          updatedAt: f.updatedAt.toISOString(),
+        }))
+
+    return buildTree(null)
   }
 
   async postMyDriveFolder(userId: string, dto: CreateUploadFolderDto) {
@@ -24,10 +49,11 @@ export class KnowledgeBaseMyDriveRepository {
         data: {
           type: 'myDrive',
           userId,
-          folderName: dto.folderName,
-          description: dto.description || null,
-          question: dto.folderName,
-          answer: dto.description || 'Folder',
+          folderName: dto.name,
+          folderId: dto.parentId ?? null,
+          description: dto.description ?? null,
+          question: dto.name,
+          answer: dto.description ?? 'Folder',
         },
       })
     } catch (error) {
@@ -43,33 +69,17 @@ export class KnowledgeBaseMyDriveRepository {
     }
   }
 
-  async getMyDriveFilesList(userId: string, folderId?: string | null) {
-    try {
-      return await this.prisma.knowledgeBase.findMany({
-        where: {
-          type: 'myDrive',
-          userId,
-          folderId: folderId || undefined,
-          fileUrl: { not: null },
-        },
-        orderBy: { createdAt: 'desc' },
-      })
-    } catch (error) {
-      throw handlePrismaError(error, 'knowledgeBase')
-    }
-  }
-
-  async postMyDriveFile(userId: string, dto: CreateUploadSignedUrlDto, fileUrl: string, size: number) {
+  async postMyDriveFile(userId: string, dto: CreateUploadSignedUrlDto, storagePath: string) {
     try {
       return await this.prisma.knowledgeBase.create({
         data: {
           type: 'myDrive',
           userId,
-          folderId: dto.folderId || null,
+          folderId: dto.folderId ?? null,
           fileName: dto.fileName,
           mimeType: dto.mimeType,
-          fileUrl,
-          size,
+          fileUrl: storagePath,
+          size: dto.size ?? 0,
           question: dto.fileName,
           answer: dto.mimeType,
         },

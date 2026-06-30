@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpException, InternalServerErrorException, Logger, Patch, Post, Query } from '@nestjs/common'
 import { ApiTags, ApiOperation } from '@nestjs/swagger'
 import { AgentsService } from '../services/agents.service'
-import type { CreateAgentsDto, UpdateAgentsDto } from '../dto/agents.dto'
+import { CreateAgentsDto, UpdateAgentsDto } from '../dto/agents.dto'
 
 @ApiTags('agent')
 @Controller('agent')

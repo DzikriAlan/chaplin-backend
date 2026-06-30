@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard'
 import { CurrentUser, type CurrentUserPayload } from '../../../shared/decorators/current-user.decorator'
 import { UsageSaldoService } from '../services/usageSaldo.service'
-import type { CreateUsageSaldoTopupDto, QueryUsageSaldoLogsDto } from '../dto/usageSaldo.dto'
+import { CreateUsageSaldoTopupDto, QueryUsageSaldoLogsDto } from '../dto/usageSaldo.dto'
 
 @ApiTags('usage-saldo')
 @ApiBearerAuth()

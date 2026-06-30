@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard'
 import { CurrentUser, type CurrentUserPayload } from '../../../shared/decorators/current-user.decorator'
 import { KnowledgeBaseFaqService } from '../services/knowledgeBaseFaq.service'
-import type { CreateKnowledgeBaseDto, UpdateKnowledgeBaseDto, CreateFaqManagerDto } from '../dto/knowledgeBaseFaq.dto'
+import { CreateKnowledgeBaseDto, UpdateKnowledgeBaseDto, CreateFaqManagerDto } from '../dto/knowledgeBaseFaq.dto'
 
 @ApiTags('knowledge-base/faq')
 @Controller('knowledge-base/faq')

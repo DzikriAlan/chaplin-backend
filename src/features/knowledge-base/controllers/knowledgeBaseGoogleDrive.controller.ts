@@ -4,7 +4,7 @@ import type { Response } from 'express'
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard'
 import { CurrentUser, type CurrentUserPayload } from '../../../shared/decorators/current-user.decorator'
 import { KnowledgeBaseGoogleDriveService } from '../services/knowledgeBaseGoogleDrive.service'
-import type { SelectDriveFolderDto, UpdateDocumentsDto, DeleteDocumentsDto, SyncDocumentsDto } from '../dto/knowledgeBaseGoogleDrive.dto'
+import { SelectDriveFolderDto, UpdateDocumentsDto, DeleteDocumentsDto, SyncDocumentsDto } from '../dto/knowledgeBaseGoogleDrive.dto'
 
 @ApiTags('knowledge-base/google-drive')
 @Controller('knowledge-base/google-drive')

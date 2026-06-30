@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard'
 import { CurrentUser, type CurrentUserPayload } from '../../../shared/decorators/current-user.decorator'
 import { KnowledgeBaseMyDriveService } from '../services/knowledgeBaseMyDrive.service'
-import type { CreateUploadSignedUrlDto, CreateUploadFolderDto } from '../dto/knowledgeBaseMyDrive.dto'
+import { CreateUploadSignedUrlDto, CreateUploadFolderDto } from '../dto/knowledgeBaseMyDrive.dto'
 
 @ApiTags('knowledge-base/my-drive')
 @Controller('knowledge-base/my-drive')

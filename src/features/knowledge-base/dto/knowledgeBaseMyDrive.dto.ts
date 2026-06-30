@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { IsString, IsOptional } from 'class-validator'
+import { IsString, IsOptional, IsNumber } from 'class-validator'
 
 export class CreateUploadSignedUrlDto {
   @ApiProperty()
@@ -9,6 +9,11 @@ export class CreateUploadSignedUrlDto {
   @ApiProperty()
   @IsString()
   mimeType: string
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
+  size?: number
 
   @ApiPropertyOptional()
   @IsString()

@@ -57,8 +57,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
   private extractValidationErrors(messages: string[]): ValidationError[] {
     return messages.map((msg) => {
-      const parts = msg.split(' ')
-      return { field: parts[0] ?? 'unknown', message: msg }
+      // "property size should not exist" → field: "size"
+      // "fileName must be a string" → field: "fileName"
+      const nonWhitelisted = /^property (\S+) should not exist/.exec(msg)
+      const standard = /^(\S+) /.exec(msg)
+      const field = nonWhitelisted?.[1] ?? standard?.[1] ?? 'unknown'
+      return { field, message: msg }
     })
   }
 }

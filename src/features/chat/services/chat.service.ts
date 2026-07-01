@@ -20,6 +20,12 @@ export class ChatService {
     res.flushHeaders()
 
     try {
+      await this.prisma.chatSession.upsert({
+        where: { sessionId: dto.sessionId },
+        update: { updatedAt: new Date() },
+        create: { sessionId: dto.sessionId, userId: dto.userId, title: null },
+      })
+
       const agent = dto.agentId
         ? await this.prisma.agent.findUnique({ where: { id: dto.agentId } })
         : null
@@ -79,5 +85,21 @@ export class ChatService {
     } finally {
       res.end()
     }
+  }
+
+  async getUserConversations(userId: string) {
+    return await this.prisma.chatSession.findMany({
+      where: { userId },
+      orderBy: { updatedAt: 'desc' },
+      select: { sessionId: true, title: true, createdAt: true, updatedAt: true },
+    })
+  }
+
+  async getConversationHistory(sessionId: string) {
+    return await this.prisma.chatHistory.findMany({
+      where: { sessionId },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, role: true, content: true, createdAt: true },
+    })
   }
 }

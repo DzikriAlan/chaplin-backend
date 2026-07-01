@@ -42,23 +42,28 @@ model DocumentChunk {
 }
 
 model ChatHistory {
-  id        String   @id @default(cuid())
-  sessionId String
-  role      String
-  content   String   @db.Text
-  sources   Json?
-  createdAt DateTime @default(now())
+  id            String       @id @default(cuid())
+  sessionId     String
+  chatSession   ChatSession  @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  role          String
+  content       String       @db.Text
+  sources       Json?
+  createdAt     DateTime     @default(now())
 
   @@index([sessionId])
   @@map("chat_history")
 }
 
 model ChatSession {
-  sessionId String   @id
+  sessionId String        @id @default(cuid())
+  userId    String?
+  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  history   ChatHistory[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
+  @@index([userId])
   @@map("chat_sessions")
 }
 
@@ -159,14 +164,15 @@ model Session {
 }
 
 model User {
-  id            String       @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String?
-  email         String?      @unique
+  email         String?        @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
   userBalance   UserBalance?
+  chatSessions  ChatSession[]
 
   @@map("users")
 }

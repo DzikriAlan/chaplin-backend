@@ -15,4 +15,9 @@ export class ChatDto {
   @IsOptional()
   @IsString()
   agentId?: string
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  userId?: string
 }

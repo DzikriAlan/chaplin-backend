@@ -4,7 +4,6 @@ export class AgentsEntity {
   description: string | null
   image: string | null
   personalization: string | null
-  knowledgeBaseIds: string[]
   isDefault: boolean
   embedScript: string | null
   whatsappScript: string | null

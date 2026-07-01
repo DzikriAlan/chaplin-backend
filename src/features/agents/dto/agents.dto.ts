@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { IsString, IsOptional, IsBoolean, IsArray } from 'class-validator'
+import { IsString, IsOptional, IsBoolean } from 'class-validator'
 
 export class CreateAgentsDto {
   @ApiProperty()
@@ -20,12 +20,6 @@ export class CreateAgentsDto {
   @IsString()
   @IsOptional()
   personalization?: string
-
-  @ApiPropertyOptional({ type: [String] })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  knowledgeBaseIds?: string[]
 
   @ApiPropertyOptional()
   @IsBoolean()
@@ -54,12 +48,6 @@ export class UpdateAgentsDto {
   @IsOptional()
   personalization?: string
 
-  @ApiPropertyOptional({ type: [String] })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  knowledgeBaseIds?: string[]
-
   @ApiPropertyOptional()
   @IsBoolean()
   @IsOptional()
@@ -81,9 +69,6 @@ export class AgentsResponseDto {
 
   @ApiPropertyOptional()
   personalization?: string | null
-
-  @ApiProperty({ type: [String] })
-  knowledgeBaseIds: string[]
 
   @ApiProperty()
   isDefault: boolean

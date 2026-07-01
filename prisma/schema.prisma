@@ -7,48 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Document {
-  id        String          @id @default(cuid())
-  title     String
-  mimeType  String
-  driveId   String          @unique
-  status    DocStatus       @default(PENDING)
-  chunks    DocumentChunk[]
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-
-  @@map("documents")
-}
-
-enum DocStatus {
-  PENDING
-  PROCESSING
-  READY
-  ERROR
-}
-
-model DocumentChunk {
-  id         String                      @id @default(cuid())
-  documentId String
-  document   Document                    @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  content    String                      @db.Text
-  embedding  Unsupported("vector(1024)")?
-  chunkIndex Int                         @default(0)
-  metadata   Json?
-  createdAt  DateTime                    @default(now())
-
-  @@index([documentId])
-  @@map("document_chunks")
-}
-
 model ChatHistory {
-  id            String       @id @default(cuid())
-  sessionId     String
-  chatSession   ChatSession  @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
-  role          String
-  content       String       @db.Text
-  sources       Json?
-  createdAt     DateTime     @default(now())
+  id          String      @id @default(cuid())
+  sessionId   String
+  chatSession ChatSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  role        String
+  content     String      @db.Text
+  sources     Json?
+  createdAt   DateTime    @default(now())
 
   @@index([sessionId])
   @@map("chat_history")
@@ -65,71 +31,6 @@ model ChatSession {
 
   @@index([userId])
   @@map("chat_sessions")
-}
-
-model ChatCache {
-  id           String                       @id @default(cuid())
-  questionHash String                       @unique
-  question     String                       @db.Text
-  answer       String                       @db.Text
-  sources      Json?
-  embedding    Unsupported("vector(1024)")?
-  createdAt    DateTime                     @default(now())
-
-  @@map("chat_cache")
-}
-
-model GeneratedQuestion {
-  id         String   @id @default(cuid())
-  topic      String
-  type       String   @default("multiple_choice")
-  question   String   @db.Text
-  options    Json?
-  answer     String   @db.Text
-  discussion String?  @db.Text
-  createdAt  DateTime @default(now())
-
-  @@map("generated_questions")
-}
-
-model KnowledgeBase {
-  id            String                       @id @default(cuid())
-  type          String                       // 'public' | 'faq' | 'googleDrive' | 'myDrive'
-  userId        String?                      // null untuk public items
-  question      String
-  answer        String                       @db.Text
-  tags          String[]                     @default([])
-  category      String?                      // untuk FAQ
-  folderId      String?                      // untuk MyDrive
-  fileName      String?                      // untuk MyDrive
-  mimeType      String?                      // untuk MyDrive
-  fileUrl       String?                      // untuk MyDrive
-  size          Int?                         // untuk MyDrive
-  folderName    String?                      // untuk GoogleDrive & MyDrive folders
-  description   String?                      // untuk MyDrive folder
-  accessToken   String?                      @db.Text  // untuk GoogleDrive
-  refreshToken  String?                      @db.Text  // untuk GoogleDrive
-  isActive      Boolean                      @default(true)
-  embedding     Unsupported("vector(1024)")?
-  createdAt     DateTime                     @default(now())
-  updatedAt     DateTime                     @updatedAt
-
-  @@index([type, userId, isActive])
-  @@index([userId, type])
-  @@index([type, isActive])
-  @@map("knowledge_base")
-}
-
-model DriveConfig {
-  id           String    @id @default(cuid())
-  folderId     String
-  folderName   String?
-  refreshToken String    @db.Text
-  lastSyncAt   DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  @@map("drive_config")
 }
 
 model Account {
@@ -164,14 +65,13 @@ model Session {
 }
 
 model User {
-  id            String         @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String?
-  email         String?        @unique
+  email         String?       @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
-  userBalance   UserBalance?
   chatSessions  ChatSession[]
 
   @@map("users")
@@ -186,123 +86,17 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-model UserBalance {
-  id            String     @id @default(cuid())
-  userId        String     @unique
-  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  balance       Int        @default(19000)
-  fileSizeBytes BigInt     @default(0)
-  plan          String     @default("starter")
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
-  usageLogs     UsageLog[]
-  faqItems      FaqManager[]
-
-  @@map("user_balances")
-}
-
-model FaqManager {
-  id          String                       @id @default(cuid())
-  userId      String
-  userBalance UserBalance                  @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  question    String
-  answer      String                       @db.Text
-  embedding   Unsupported("vector(1024)")?
-  isActive    Boolean                      @default(true)
-  createdAt   DateTime                     @default(now())
-  updatedAt   DateTime                     @updatedAt
-
-  @@index([userId])
-  @@map("faq_manager")
-}
-
-model VectorsSop {
-  id         String                       @id @default(cuid())
-  userId     String
-  sourceType String
-  sourceName String
-  sourceUrl  String?
-  chunkIndex Int                          @default(0)
-  content    String                       @db.Text
-  embedding  Unsupported("vector(1024)")?
-  createdAt  DateTime                     @default(now())
-
-  @@index([userId])
-  @@map("vectors_sop")
-}
-
-model UsageLog {
-  id            String      @id @default(cuid())
-  userId        String
-  userBalance   UserBalance @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  activityType  String
-  senderName    String?
-  deduction     Int
-  balanceBefore Int
-  balanceAfter  Int
-  createdAt     DateTime    @default(now())
-
-  @@index([userId, createdAt(sort: Desc)])
-  @@map("usage_logs")
-}
-
 model Agent {
-  id                String   @id @default(cuid())
-  name              String
-  description       String?
-  image             String?
-  personalization   String?  @db.Text
-  knowledgeBaseIds  String[]
-  isDefault         Boolean  @default(false)
-  embedScript       String?  @db.Text
-  whatsappScript    String?  @db.Text
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  image          String?
+  personalization String? @db.Text
+  isDefault      Boolean  @default(false)
+  embedScript    String?  @db.Text
+  whatsappScript String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@map("agents")
-}
-
-model UploadFolder {
-  id        String         @id @default(cuid())
-  name      String
-  parentId  String?
-  parent    UploadFolder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
-  children  UploadFolder[] @relation("FolderTree")
-  files     UploadFile[]
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-
-  @@index([parentId])
-  @@map("upload_folders")
-}
-
-model UploadFile {
-  id          String        @id @default(cuid())
-  name        String
-  size        BigInt
-  mimeType    String
-  storagePath String
-  folderId    String?
-  folder      UploadFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  @@index([folderId])
-  @@map("upload_files")
-}
-
-// All knowledge base types are now unified in KnowledgeBase model above
-
-// Usage Saldo Model (alias for userBalance)
-model UsageSaldo {
-  id            String     @id @default(cuid())
-  userId        String     @unique
-  balance       Int        @default(19000)
-  fileSizeBytes BigInt     @default(0)
-  plan          String     @default("starter")
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
-  @@map("user_balances_new")
 }

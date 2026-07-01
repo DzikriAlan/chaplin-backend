@@ -7,8 +7,6 @@ import { throttlerConfig } from './shared/throttler/throttler.config'
 import { AuthModule } from './features/auth/auth.module'
 import { UsersModule } from './features/users/users.module'
 import { AgentsModule } from './features/agents/agents.module'
-import { KnowledgeBaseModule } from './features/knowledge-base/knowledgeBase.module'
-import { UsageSaldoModule } from './features/usage-saldo/usageSaldo.module'
 import { ChatModule } from './features/chat/chat.module'
 
 @Module({
@@ -20,8 +18,6 @@ import { ChatModule } from './features/chat/chat.module'
     AuthModule,
     UsersModule,
     AgentsModule,
-    KnowledgeBaseModule,
-    UsageSaldoModule,
     ChatModule,
   ],
 })

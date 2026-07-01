@@ -34,19 +34,7 @@ export class ChatService {
         ? await this.prisma.agent.findUnique({ where: { id: dto.agentId } })
         : null
 
-      let contextText = ''
-      if (agent?.knowledgeBaseIds?.length) {
-        const kbItems = await this.prisma.knowledgeBase.findMany({
-          where: { id: { in: agent.knowledgeBaseIds }, isActive: true },
-          select: { question: true, answer: true },
-        })
-        contextText = kbItems.map((item) => `Q: ${item.question}\nA: ${item.answer}`).join('\n\n')
-      }
-
-      const systemPrompt = [
-        agent?.personalization ?? 'Kamu adalah asisten AI yang helpful dan ramah.',
-        contextText ? `\n\nGunakan informasi berikut sebagai referensi:\n${contextText}` : '',
-      ].join('')
+      const systemPrompt = agent?.personalization ?? 'Kamu adalah asisten AI yang helpful dan ramah.'
 
       const history = await this.prisma.chatHistory.findMany({
         where: { sessionId: dto.sessionId },

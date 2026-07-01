@@ -1,11 +1,7 @@
 import { Module } from '@nestjs/common'
 import { BullModule } from '@nestjs/bullmq'
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { QUEUES } from './queue.constants'
-import { EmbeddingProcessor } from './embedding.processor'
-import { DriveSyncProcessor } from './drive-sync.processor'
 import { QueueService } from './queue.service'
-import { SharedModule } from '../shared.module'
 
 @Module({
   imports: [
@@ -20,13 +16,8 @@ import { SharedModule } from '../shared.module'
         },
       }),
     }),
-    BullModule.registerQueue(
-      { name: QUEUES.EMBEDDING },
-      { name: QUEUES.DRIVE_SYNC },
-    ),
-    SharedModule,
   ],
-  providers: [EmbeddingProcessor, DriveSyncProcessor, QueueService],
+  providers: [QueueService],
   exports: [BullModule, QueueService],
 })
 export class QueueModule {}

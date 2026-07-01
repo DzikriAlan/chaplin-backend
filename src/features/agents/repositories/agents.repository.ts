@@ -23,7 +23,6 @@ export class AgentsRepository {
           description: dto.description ?? null,
           image: dto.image ?? null,
           personalization: dto.personalization ?? null,
-          knowledgeBaseIds: dto.knowledgeBaseIds ?? [],
           isDefault: dto.isDefault ?? false,
         },
       })
@@ -52,7 +51,6 @@ export class AgentsRepository {
           ...(dto.description !== undefined && { description: dto.description }),
           ...(dto.image !== undefined && { image: dto.image }),
           ...(dto.personalization !== undefined && { personalization: dto.personalization }),
-          ...(dto.knowledgeBaseIds !== undefined && { knowledgeBaseIds: dto.knowledgeBaseIds }),
           ...(dto.isDefault !== undefined && { isDefault: dto.isDefault }),
         },
       })

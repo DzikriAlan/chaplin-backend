@@ -114,4 +114,26 @@ export class ChatService {
       return []
     }
   }
+
+  async updateConversationTitle(sessionId: string, title: string): Promise<boolean> {
+    try {
+      await this.prisma.chatSession.update({
+        where: { sessionId },
+        data: { title },
+      })
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  async deleteConversation(sessionId: string): Promise<boolean> {
+    try {
+      await this.prisma.chatHistory.deleteMany({ where: { sessionId } })
+      await this.prisma.chatSession.delete({ where: { sessionId } })
+      return true
+    } catch {
+      return false
+    }
+  }
 }

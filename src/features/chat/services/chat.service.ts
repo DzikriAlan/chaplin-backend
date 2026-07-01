@@ -20,11 +20,15 @@ export class ChatService {
     res.flushHeaders()
 
     try {
-      await this.prisma.chatSession.upsert({
-        where: { sessionId: dto.sessionId },
-        update: { updatedAt: new Date() },
-        create: { sessionId: dto.sessionId, userId: dto.userId, title: null },
-      })
+      try {
+        await this.prisma.chatSession.upsert({
+          where: { sessionId: dto.sessionId },
+          update: { updatedAt: new Date() },
+          create: { sessionId: dto.sessionId, userId: dto.userId, title: null },
+        })
+      } catch {
+        // Silently fail if table schema doesn't have userId yet
+      }
 
       const agent = dto.agentId
         ? await this.prisma.agent.findUnique({ where: { id: dto.agentId } })
@@ -88,18 +92,26 @@ export class ChatService {
   }
 
   async getUserConversations(userId: string) {
-    return await this.prisma.chatSession.findMany({
-      where: { userId },
-      orderBy: { updatedAt: 'desc' },
-      select: { sessionId: true, title: true, createdAt: true, updatedAt: true },
-    })
+    try {
+      return await this.prisma.chatSession.findMany({
+        where: { userId },
+        orderBy: { updatedAt: 'desc' },
+        select: { sessionId: true, title: true, createdAt: true, updatedAt: true },
+      })
+    } catch {
+      return []
+    }
   }
 
   async getConversationHistory(sessionId: string) {
-    return await this.prisma.chatHistory.findMany({
-      where: { sessionId },
-      orderBy: { createdAt: 'asc' },
-      select: { id: true, role: true, content: true, createdAt: true },
-    })
+    try {
+      return await this.prisma.chatHistory.findMany({
+        where: { sessionId },
+        orderBy: { createdAt: 'asc' },
+        select: { id: true, role: true, content: true, createdAt: true },
+      })
+    } catch {
+      return []
+    }
   }
 }

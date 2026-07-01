@@ -45,7 +45,7 @@ export class KnowledgeBaseMyDriveService {
     }
   }
 
-  async fetchUploadFilesList(userId: string, folderId: string | null) {
+  async fetchUploadFilesList(userId: string) {
     try {
       if (!userId) throw new BadRequestException('User ID is required')
       return await this.uploadRepository.getMyDriveFoldersList(userId)

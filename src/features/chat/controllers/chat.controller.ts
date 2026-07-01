@@ -16,8 +16,8 @@ export class ChatController {
 
   @Post()
   @ApiOperation({ summary: 'Stream agent chat response via SSE' })
-  async chat(@Body() dto: ChatDto, @Res() res: Response): Promise<void> {
-    await this.chatService.streamChat(dto, res)
+  async chat(@Body() dto: ChatDto, @Res() res: Response, @CurrentUser() user: CurrentUserPayload): Promise<void> {
+    await this.chatService.streamChat({ ...dto, userId: user.id }, res)
   }
 
   @Get('conversations')

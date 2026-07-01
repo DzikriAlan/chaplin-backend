@@ -54,6 +54,12 @@ export class UpdateAgentsDto {
   isDefault?: boolean
 }
 
+export class GenerateAgentDto {
+  @ApiProperty()
+  @IsString()
+  prompt: string
+}
+
 export class AgentsResponseDto {
   @ApiProperty()
   id: string

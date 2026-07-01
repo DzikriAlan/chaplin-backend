@@ -1,6 +1,7 @@
 import { HttpException, Injectable, InternalServerErrorException, Logger, BadRequestException } from '@nestjs/common'
 import { AgentsRepository } from '../repositories/agents.repository'
 import { CacheService } from '../../../shared/services/cache.service'
+import { AiService } from '../../../shared/services/ai.service'
 import type { CreateAgentsDto, UpdateAgentsDto } from '../dto/agents.dto'
 
 const AGENTS_LIST_KEY = 'agents:list'
@@ -12,7 +13,42 @@ export class AgentsService {
   constructor(
     private readonly agentsRepository: AgentsRepository,
     private readonly cacheService: CacheService,
+    private readonly aiService: AiService,
   ) {}
+
+  async generateAgent(prompt: string): Promise<{ name: string; description: string; personalization: string }> {
+    try {
+      const response = await this.aiService.deepseek.chat.completions.create({
+        model: 'deepseek-chat',
+        messages: [
+          {
+            role: 'system',
+            content: `Kamu adalah desainer AI agent. Berdasarkan permintaan pengguna, buat profil AI agent.
+Kembalikan HANYA objek JSON dengan field berikut (tidak ada teks lain):
+- name: nama agent singkat (2-4 kata, bahasa Indonesia)
+- description: deskripsi singkat (maks 80 karakter)
+- personalization: system prompt detail untuk AI agent (bahasa Indonesia, spesifik, instruktif)
+
+Contoh output:
+{"name":"Agen Sepak Bola","description":"Ahli sepak bola, statistik, dan berita terkini","personalization":"Kamu adalah asisten AI yang ahli dalam dunia sepak bola. Jawab pertanyaan tentang aturan, statistik pemain, sejarah pertandingan, dan berita terkini dengan akurat dan antusias."}`,
+          },
+          { role: 'user', content: prompt },
+        ],
+        response_format: { type: 'json_object' },
+      })
+
+      const content = response.choices[0]?.message?.content ?? '{}'
+      const parsed = JSON.parse(content) as { name?: string; description?: string; personalization?: string }
+      return {
+        name: parsed.name ?? '',
+        description: parsed.description ?? '',
+        personalization: parsed.personalization ?? '',
+      }
+    } catch (error) {
+      this.logger.error('Failed to generate agent', error)
+      throw new InternalServerErrorException('Gagal generate agent, coba lagi')
+    }
+  }
 
   async fetchAgentsList() {
     try {

@@ -27,7 +27,7 @@ export class ChatService {
           create: { sessionId: dto.sessionId, userId: dto.userId, title: null },
         })
       } catch {
-        // Silently fail if table schema doesn't have userId yet
+        // Silently continue — chatHistory will still be created if session already exists
       }
 
       const agent = dto.agentId

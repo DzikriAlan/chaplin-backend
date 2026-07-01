@@ -20,7 +20,9 @@ export class ChatService {
     res.flushHeaders()
 
     try {
-      const agent = await this.prisma.agent.findUnique({ where: { id: dto.agentId } })
+      const agent = dto.agentId
+        ? await this.prisma.agent.findUnique({ where: { id: dto.agentId } })
+        : null
 
       let contextText = ''
       if (agent?.knowledgeBaseIds?.length) {

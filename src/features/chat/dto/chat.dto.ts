@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger'
-import { IsString, MinLength } from 'class-validator'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { IsString, MinLength, IsOptional } from 'class-validator'
 
 export class ChatDto {
   @ApiProperty()
@@ -11,7 +11,8 @@ export class ChatDto {
   @IsString()
   sessionId: string
 
-  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  agentId: string
+  agentId?: string
 }
